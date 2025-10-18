@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Operators Shift Bidding - Seniority Based</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 24px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 16px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        .tab:hover {
+            background: #f1f5f9;
+        }
+        
+        .tab.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background: white;
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .drop-zone {
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            background: #f8fafc;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #2563eb;
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+        
+        .drop-zone-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        .drop-zone h3 {
+            color: #1e293b;
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+        
+        .drop-zone p {
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .filter-group label {
+            font-size: 14px;
+            color: #475569;
+            font-weight: 500;
+        }
+        
+        .filter-group select, .filter-group input {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .roster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .roster-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .roster-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        
+        .roster-card.selected {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        
+        .roster-card.cannot-bid {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #fef2f2;
+        }
+        
+        .roster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .roster-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        
+        .roster-department {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .shifts-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        
+        .shift-day {
+            text-align: center;
+            padding: 6px 4px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .shift-day-header {
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 9px;
+            padding: 4px 2px;
+        }
+        
+        .shift-off {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .shift-vacation {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .shift-tandev {
+            background: #fed7aa;
+            color: #9a3412;
+        }
+        
+        .shift-regular {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .shift-empty {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+        
+        .roster-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .bid-status {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .bid-count {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #eff6ff;
+            color: #2563eb;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .instructions {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .instructions h3 {
+            color: #1e40af;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .instructions ul {
+            margin-left: 20px;
+            color: #1e40af;
+        }
+        
+        .instructions li {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-card h4 {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 48px;
+            color: #64748b;
+        }
+        
+        .success-message {
+            padding: 16px;
+            background: #d1fae5;
+            border-radius: 8px;
+            color: #065f46;
+            margin-top: 16px;
+        }
+        
+        .error-message {
+            padding: 16px;
+            background: #fee2e2;
+            border-radius: 8px;
+            color: #991b1b;
+            margin-top: 16px;
+        }
+        
+        .warning-message {
+            padding: 16px;
+            background: #fef3c7;
+            border-radius: 8px;
+            color: #92400e;
+            margin-top: 16px;
+        }
+        
+        .info-message {
+            padding: 16px;
+            background: #eff6ff;
+            border-radius: 8px;
+            color: #1e40af;
+            margin-top: 16px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 13px;
+        }
+        
+        th {
+            background: #f8fafc;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+        }
+        
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        tr:hover {
+            background: #f9fafb;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+        
+        .my-bids-section {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .my-bids-section h3 {
+            color: #065f46;
+            margin-bottom: 12px;
+        }
+        
+        .bid-item {
+            display: inline-block;
+            margin: 4px;
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid #86efac;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚂 Train Operators Shift Bidding System</h1>
+            <p>Browse Roster Patterns | Bid on Your Preferred Schedule | Seniority-Based Assignment</p>
+        </div>
+        
+                    <div class="tabs">
+            <div class="tab active" data-tab="upload">1. Upload Roster</div>
+            <div class="tab" data-tab="browse">2. Browse & Bid</div>
+            <div class="tab" data-tab="process">3. Process Bids</div>
+            <div class="tab" data-tab="results">4. View Results</div>
+            <div class="tab" data-tab="summary">5. Summary</div>
+        </div>
+        
+        <div class="content">
+            <!-- Upload Tab -->
+            <div class="tab-content active" id="upload-tab">
+                <div class="instructions">
+                    <h3>📋 How This System Works</h3>
+                    <ul>
+                        <li><strong>Step 1:</strong> Upload your Excel roster file</li>
+                        <li><strong>Step 2:</strong> System creates roster patterns (each pattern shows a complete monthly schedule)</li>
+                        <li><strong>Step 3:</strong> Employees browse roster patterns and bid on their preferred ones</li>
+                        <li><strong>Step 4:</strong> Employees can only bid on rosters from their department</li>
+                        <li><strong>Step 5:</strong> System assigns rosters based on seniority (lower Employee ID = higher priority)</li>
+                    </ul>
+                </div>
+                
+                <div class="drop-zone" id="drop-zone">
+                    <div class="drop-zone-icon">📁</div>
+                    <h3>Drag & Drop Excel File Here</h3>
+                    <p>or click to browse files</p>
+                    <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                        Choose File
+                    </button>
+                    <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+                    <p style="margin-top: 12px; font-size: 12px; color: #94a3b8;">
+                        Supported formats: .xlsx, .xls
+                    </p>
+                </div>
+                
+                <div id="upload-status"></div>
+                
+                <div id="employee-preview" style="margin-top: 24px; display: none;">
+                    <h3 style="margin-bottom: 12px;">Loaded Employees</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Seniority Rank</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employee-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Browse & Bid Tab -->
+            <div class="tab-content" id="browse-tab">
+                <div class="instructions">
+                    <h3>👥 Browse Roster Patterns & Place Your Bids</h3>
+                    <ul>
+                        <li>Enter your Employee ID to start bidding</li>
+                        <li>Each card shows a complete roster pattern (Roster #) with all shifts for the month</li>
+                        <li>You can ONLY bid on rosters from YOUR department</li>
+                        <li>Click on roster cards to select/deselect your preferred patterns</li>
+                        <li>Selected rosters are highlighted in blue</li>
+                        <li>Rosters from other departments are grayed out</li>
+                    </ul>
+                </div>
+                
+                <div class="controls">
+                    <div class="filter-group">
+                        <label>Your Employee ID:</label>
+                        <input type="number" id="current-employee-id" placeholder="Enter ID" style="width: 150px;" onkeypress="if(event.key==='Enter') updateRosterView()">
+                        <button class="btn btn-primary" onclick="updateRosterView()">↵ Enter</button>
+                    </div>
+                    <div class="filter-group">
+                        <label>Filter Department:</label>
+                        <select id="filter-department" onchange="updateRosterView()">
+                            <option value="">All Departments</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Show:</label>
+                        <select id="filter-type" onchange="updateRosterView()">
+                            <option value="all">All Rosters</option>
+                            <option value="my-dept">My Department Only</option>
+                            <option value="my-bids">My Bids Only</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color shift-off">OFF</div>
+                        <span>Day Off</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color shift-tandev">TAN</div>
+                        <span>Training/Development</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color shift-vacation">VAC</div>
+                        <span>Vacation</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color shift-regular">A/B/C</div>
+                        <span>Regular Shifts</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color shift-empty">-</div>
+                        <span>Empty/Available</span>
+                    </div>
+                </div>
+                
+                <div id="current-employee-info"></div>
+                
+                <div id="my-bids-container"></div>
+                
+                <div id="roster-grid" class="roster-grid"></div>
+            </div>
+            
+            <!-- Process Bids Tab -->
+            <div class="tab-content" id="process-tab">
+                <div class="instructions">
+                    <h3>🔧 Process Bids (Manager Only)</h3>
+                    <ul>
+                        <li>Review all bids placed by employees</li>
+                        <li>Click "Process All Bids" to automatically assign rosters</li>
+                        <li>System assigns based on seniority (lower Employee ID = higher priority)</li>
+                        <li>Each employee can only win rosters from their own department</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 12px;">Bidding Status</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h4>Total Rosters</h4>
+                            <div class="value" id="process-total-rosters">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Rosters with Bids</h4>
+                            <div class="value" id="process-rosters-with-bids">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Total Bids Placed</h4>
+                            <div class="value" id="process-total-bids">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Unique Bidders</h4>
+                            <div class="value" id="process-unique-bidders">0</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-success" style="font-size: 16px; padding: 12px 24px;" onclick="event.preventDefault(); event.stopPropagation(); processAllBids(); return false;">
+                            🎯 Process All Bids (Assign by Seniority)
+                        </button>
+                        <button class="btn btn-danger" style="margin-left: 12px;" onclick="event.preventDefault(); event.stopPropagation(); clearAllBids(); return false;">
+                            Clear All Bids
+                        </button>
+                    </div>
+                    
+                    <div id="process-result"></div>
+                </div>
+                
+                <h3 style="margin-bottom: 12px;">All Bids Review</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roster #</th>
+                            <th>Department</th>
+                            <th>Bidders (Sorted by Seniority)</th>
+                            <th>Total Bids</th>
+                        </tr>
+                    </thead>
+                    <tbody id="process-tbody"></tbody>
+                </table>
+            </div>
+            
+            <!-- Results Tab -->
+            <div class="tab-content" id="results-tab">
+                <div class="instructions">
+                    <h3>📊 Assignment Results</h3>
+                    <ul>
+                        <li>View all roster assignments after processing</li>
+                        <li>Winners are highlighted</li>
+                        <li>Export results to update your main roster</li>
+                    </ul>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="exportResults()">📥 Export Results (CSV)</button>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roster #</th>
+                            <th>Department</th>
+                            <th>Winner (Assigned To)</th>
+                            <th>Winner Seniority Rank</th>
+                            <th>All Bidders</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody"></tbody>
+                </table>
+            </div>
+            
+            <!-- Summary Tab -->
+            <div class="tab-content" id="summary-tab">
+                <h2 style="margin-bottom: 20px;">📊 Final Summary</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total Rosters</h4>
+                        <div class="value" id="summary-total">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Rosters Assigned</h4>
+                        <div class="value" id="summary-assigned">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Rosters Still Open</h4>
+                        <div class="value" id="summary-open">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Total Bids Processed</h4>
+                        <div class="value" id="summary-bids">0</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 24px 0 16px;">Employee Bidding Activity</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee ID</th>
+                            <th>Employee Name</th>
+                            <th>Department</th>
+                            <th>Bids Placed</th>
+                            <th>Rosters Won</th>
+                            <th>Success Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summary-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let employees = [];
+        let rosters = []; // Each roster is a complete monthly schedule pattern
+        let dateColumns = [];
+        let allDepartments = new Set();
+        let processedResults = [];
+        let myBids = new Set();
+
+        // Drag and drop handlers
+        const dropZone = document.getElementById('drop-zone');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        });
+        
+        dropZone.addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        function handleFile(file) {
+            if (!file) return;
+            
+            const statusDiv = document.getElementById('upload-status');
+            statusDiv.innerHTML = '<div class="warning-message">📂 Reading file...</div>';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    processExcelData(jsonData);
+                    
+                    statusDiv.innerHTML = `
+                        <div class="success-message">
+                            ✅ File loaded successfully!<br>
+                            Found ${employees.length} employees and created ${rosters.length} roster patterns across ${allDepartments.size} departments.
+                        </div>
+                    `;
+                    
+                    document.getElementById('employee-preview').style.display = 'block';
+                    displayEmployees();
+                    
+                } catch (error) {
+                    statusDiv.innerHTML = `
+                        <div class="error-message">
+                            ❌ Error reading file: ${error.message}
+                        </div>
+                    `;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function processExcelData(data) {
+            if (data.length < 2) return;
+            
+            const headers = data[0];
+            employees = [];
+            rosters = [];
+            dateColumns = [];
+            allDepartments.clear();
+            
+            // Find date columns
+            headers.forEach((header, index) => {
+                if (header && (header.includes('Dag_') || header.includes('Day_'))) {
+                    dateColumns.push({
+                        index: index,
+                        name: header,
+                        shortName: header.split('-')[0].replace('Dag_', '').replace('Day_', '')
+                    });
+                }
+            });
+            
+            let rosterNumber = 1;
+            
+            // Process each employee row - each row becomes one roster pattern
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length < 3) continue;
+                
+                const employeeId = row[0];
+                const employeeName = row[1];
+                const department = row[2];
+                
+                if (!employeeId || !employeeName || !department) continue;
+                
+                // Add employee if not exists
+                if (!employees.find(e => e.id === employeeId)) {
+                    employees.push({
+                        id: employeeId,
+                        name: employeeName,
+                        department: department,
+                        seniority: employeeId
+                    });
+                }
+                
+                allDepartments.add(department);
+                
+                // Create roster pattern with all shifts
+                const shifts = dateColumns.map(dateCol => ({
+                    date: dateCol.name,
+                    shortDate: dateCol.shortName,
+                    code: row[dateCol.index] || '-'
+                }));
+                
+                rosters.push({
+                    rosterNumber: rosterNumber++,
+                    department: department,
+                    shifts: shifts,
+                    originalEmployeeId: employeeId,
+                    originalEmployeeName: employeeName,
+                    bids: [], // {employeeId, employeeName, seniority, department}
+                    assignedTo: null,
+                    status: 'available'
+                });
+            }
+            
+            // Sort employees by department first, then by seniority within department
+            employees.sort((a, b) => {
+                if (a.department !== b.department) {
+                    return a.department.localeCompare(b.department);
+                }
+                return a.seniority - b.seniority;
+            });
+            
+            populateDepartmentFilter();
+        }
+
+        function displayEmployees() {
+            const tbody = document.getElementById('employee-tbody');
+            tbody.innerHTML = '';
+            
+            employees.forEach((emp, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${emp.id}</strong></td>
+                    <td>${emp.name}</td>
+                    <td>${emp.department}</td>
+                    <td><strong>#${index + 1}</strong></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function populateDepartmentFilter() {
+            const select = document.getElementById('filter-department');
+            select.innerHTML = '<option value="">All Departments</option>';
+            Array.from(allDepartments).sort().forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept;
+                option.textContent = dept;
+                select.appendChild(option);
+            });
+        }
+
+        function updateRosterView() {
+            const currentEmployeeId = document.getElementById('current-employee-id').value;
+            const deptFilter = document.getElementById('filter-department').value;
+            const typeFilter = document.getElementById('filter-type').value;
+            
+            const currentEmployee = employees.find(e => e.id == currentEmployeeId);
+            
+            const infoDiv = document.getElementById('current-employee-info');
+            if (currentEmployee) {
+                const rank = employees.findIndex(e => e.id == currentEmployeeId) + 1;
+                infoDiv.innerHTML = `
+                    <div class="info-message">
+                        <strong>Logged in as:</strong> ${currentEmployee.name} (ID: ${currentEmployee.id}) | 
+                        <strong>Department:</strong> ${currentEmployee.department} | 
+                        <strong>Seniority Rank:</strong> #${rank}
+                    </div>
+                `;
+            } else if (currentEmployeeId) {
+                infoDiv.innerHTML = `
+                    <div class="error-message">
+                        ❌ Employee ID not found. Please enter a valid ID.
+                    </div>
+                `;
+            } else {
+                infoDiv.innerHTML = `
+                    <div class="warning-message">
+                        ⚠️ Please enter your Employee ID to start bidding.
+                    </div>
+                `;
+            }
+            
+            // Show my bids section
+            if (currentEmployee) {
+                const myBidsArray = rosters.filter(r => 
+                    r.bids.some(b => b.employeeId == currentEmployee.id)
+                );
+                
+                if (myBidsArray.length > 0) {
+                    document.getElementById('my-bids-container').innerHTML = `
+                        <div class="my-bids-section">
+                            <h3>✓ Your Bids (${myBidsArray.length})</h3>
+                            ${myBidsArray.map(r => 
+                                `<span class="bid-item">Roster #${r.rosterNumber} (${r.department})</span>`
+                            ).join('')}
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('my-bids-container').innerHTML = '';
+                }
+            } else {
+                document.getElementById('my-bids-container').innerHTML = '';
+            }
+            
+            renderRosterGrid(currentEmployee, deptFilter, typeFilter);
+        }
+
+        function renderRosterGrid(currentEmployee, deptFilter, typeFilter) {
+            const grid = document.getElementById('roster-grid');
+            
+            if (rosters.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                        <h3>No rosters available</h3>
+                        <p>Upload a roster file in the "Upload Roster" tab</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Filter rosters
+            let filteredRosters = rosters;
+            if (deptFilter) {
+                filteredRosters = filteredRosters.filter(r => r.department === deptFilter);
+            }
+            if (typeFilter === 'my-dept' && currentEmployee) {
+                filteredRosters = filteredRosters.filter(r => r.department === currentEmployee.department);
+            }
+            if (typeFilter === 'my-bids' && currentEmployee) {
+                filteredRosters = filteredRosters.filter(r => 
+                    r.bids.some(b => b.employeeId == currentEmployee.id)
+                );
+            }
+            
+            grid.innerHTML = '';
+            
+            filteredRosters.forEach(roster => {
+                const canBid = currentEmployee && roster.department === currentEmployee.department;
+                const hasBid = currentEmployee && roster.bids.some(b => b.employeeId == currentEmployee.id);
+                
+                const card = document.createElement('div');
+                card.className = 'roster-card';
+                if (!canBid && currentEmployee) {
+                    card.classList.add('cannot-bid');
+                }
+                if (hasBid) {
+                    card.classList.add('selected');
+                }
+                
+                // Only make clickable if can bid
+                if (canBid) {
+                    card.onclick = () => toggleBid(roster.rosterNumber);
+                }
+                
+                card.innerHTML = `
+                    <div class="roster-header">
+                        <div class="roster-number">Roster #${roster.rosterNumber}</div>
+                        <div class="roster-department">${roster.department}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 8px;">
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
+                            ${roster.shifts.slice(0, 7).map(shift => 
+                                `<div class="shift-day-header">${shift.shortDate}</div>`
+                            ).join('')}
+                        </div>
+                        <div class="shifts-container">
+                            ${roster.shifts.slice(0, 7).map(shift => 
+                                `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    
+                    ${roster.shifts.length > 7 ? `
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
+                                ${roster.shifts.slice(7, 14).map(shift => 
+                                    `<div class="shift-day-header">${shift.shortDate}</div>`
+                                ).join('')}
+                            </div>
+                            <div class="shifts-container">
+                                ${roster.shifts.slice(7, 14).map(shift => 
+                                    `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${roster.shifts.length > 14 ? `
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
+                                ${roster.shifts.slice(14, 21).map(shift => 
+                                    `<div class="shift-day-header">${shift.shortDate}</div>`
+                                ).join('')}
+                            </div>
+                            <div class="shifts-container">
+                                ${roster.shifts.slice(14, 21).map(shift => 
+                                    `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${roster.shifts.length > 21 ? `
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
+                                ${roster.shifts.slice(21, 28).map(shift => 
+                                    `<div class="shift-day-header">${shift.shortDate}</div>`
+                                ).join('')}
+                            </div>
+                            <div class="shifts-container">
+                                ${roster.shifts.slice(21, 28).map(shift => 
+                                    `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${roster.shifts.length > 28 ? `
+                        <div>
+                            <div style="display: grid; grid-template-columns: repeat(${roster.shifts.length - 28}, 1fr); gap: 4px; margin-bottom: 4px;">
+                                ${roster.shifts.slice(28).map(shift => 
+                                    `<div class="shift-day-header">${shift.shortDate}</div>`
+                                ).join('')}
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(${roster.shifts.length - 28}, 1fr); gap: 4px;">
+                                ${roster.shifts.slice(28).map(shift => 
+                                    `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="roster-footer">
+                        <div class="bid-status">
+                            ${hasBid ? '✓ You placed a bid' : (canBid ? 'Click to bid' : '❌ Other department')}
+                        </div>
+                        <div class="bid-count">${roster.bids.length} bid(s)</div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function getShiftClass(code) {
+            if (code === 'OFF') return 'shift-off';
+            if (code === 'VACATION') return 'shift-vacation';
+            if (code === 'TANDEV') return 'shift-tandev';
+            if (code === '-' || code === '' || !code || code === 'EMPTY') return 'shift-empty';
+            return 'shift-regular';
+        }
+
+        function formatShiftCode(code) {
+            if (!code || code === 'EMPTY') return '-';
+            if (code === 'VACATION') return 'VAC';
+            if (code === 'TANDEV') return 'TAN';
+            return code;
+        }
+
+        function toggleBid(rosterNumber) {
+            const currentEmployeeId = document.getElementById('current-employee-id').value;
+            const currentEmployee = employees.find(e => e.id == currentEmployeeId);
+            
+            if (!currentEmployee) {
+                alert('Please enter your Employee ID first');
+                return;
+            }
+            
+            const roster = rosters.find(r => r.rosterNumber === rosterNumber);
+            if (!roster) return;
+            
+            // Check if can bid (same department)
+            if (roster.department !== currentEmployee.department) {
+                alert('You can only bid on rosters from your own department');
+                return;
+            }
+            
+            // Check if already bid
+            const bidIndex = roster.bids.findIndex(b => b.employeeId == currentEmployee.id);
+            
+            if (bidIndex >= 0) {
+                // Remove bid
+                roster.bids.splice(bidIndex, 1);
+            } else {
+                // Add bid
+                roster.bids.push({
+                    employeeId: currentEmployee.id,
+                    employeeName: currentEmployee.name,
+                    seniority: currentEmployee.seniority,
+                    department: currentEmployee.department
+                });
+            }
+            
+            // Sort bids by seniority
+            roster.bids.sort((a, b) => a.seniority - b.seniority);
+            
+            updateRosterView();
+            updateProcessTab();
+        }
+
+        function updateProcessTab() {
+            const totalRosters = rosters.length;
+            const rostersWithBids = rosters.filter(r => r.bids.length > 0).length;
+            const totalBids = rosters.reduce((sum, r) => sum + r.bids.length, 0);
+            const uniqueBidders = new Set();
+            rosters.forEach(r => r.bids.forEach(b => uniqueBidders.add(b.employeeId)));
+            
+            document.getElementById('process-total-rosters').textContent = totalRosters;
+            document.getElementById('process-rosters-with-bids').textContent = rostersWithBids;
+            document.getElementById('process-total-bids').textContent = totalBids;
+            document.getElementById('process-unique-bidders').textContent = uniqueBidders.size;
+            
+            // Update review table
+            const tbody = document.getElementById('process-tbody');
+            tbody.innerHTML = '';
+            
+            const rostersWithBidsOnly = rosters.filter(r => r.bids.length > 0);
+            
+            if (rostersWithBidsOnly.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 24px; color: #64748b;">No bids placed yet</td></tr>';
+                return;
+            }
+            
+            rostersWithBidsOnly.forEach(roster => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>Roster #${roster.rosterNumber}</strong></td>
+                    <td>${roster.department}</td>
+                    <td>
+                        ${roster.bids.map((b, i) => {
+                            const rank = employees.findIndex(e => e.id == b.employeeId) + 1;
+                            return `<span style="display: inline-block; margin: 2px 4px; padding: 4px 8px; background: ${i === 0 ? '#d1fae5' : '#f1f5f9'}; border-radius: 4px; font-size: 12px;">
+                                ${i === 0 ? '🏆 ' : ''}${b.employeeName} (ID: ${b.employeeId}, Rank: #${rank})
+                            </span>`;
+                        }).join('')}
+                    </td>
+                    <td><strong>${roster.bids.length}</strong></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function processAllBids() {
+            console.log('Process All Bids clicked');
+            
+            const rostersWithBids = rosters.filter(r => r.bids.length > 0);
+            
+            console.log('Rosters with bids:', rostersWithBids.length);
+            
+            if (rostersWithBids.length === 0) {
+                alert('No bids to process. Employees need to place bids first.');
+                return;
+            }
+            
+            // Skip confirmation and process directly
+            console.log('Starting to process bids immediately...');
+            
+            const resultDiv = document.getElementById('process-result');
+            if (resultDiv) {
+                resultDiv.innerHTML = '<div class="warning-message">⏳ Processing bids...</div>';
+            }
+            
+            processedResults = [];
+            let assignedCount = 0;
+            const assignedEmployees = new Set();
+            
+            // Sort rosters by number of bids (fewer bids first)
+            const sortedRosters = [...rostersWithBids].sort((a, b) => a.bids.length - b.bids.length);
+            
+            console.log('Processing', sortedRosters.length, 'rosters');
+            
+            // Process each roster with bids
+            sortedRosters.forEach(roster => {
+                console.log(`Processing Roster #${roster.rosterNumber}, bids:`, roster.bids.length);
+                
+                // Find the most senior bidder who hasn't been assigned a roster yet
+                let winner = null;
+                for (let i = 0; i < roster.bids.length; i++) {
+                    const bid = roster.bids[i];
+                    console.log(`  Checking bidder: ${bid.employeeName} (ID: ${bid.employeeId}), already assigned:`, assignedEmployees.has(bid.employeeId));
+                    
+                    if (!assignedEmployees.has(bid.employeeId)) {
+                        winner = bid;
+                        console.log(`  ✓ Winner found: ${winner.employeeName}`);
+                        break;
+                    }
+                }
+                
+                if (winner) {
+                    roster.assignedTo = winner;
+                    roster.status = 'assigned';
+                    assignedEmployees.add(winner.employeeId);
+                    assignedCount++;
+                    
+                    console.log(`✓ Roster #${roster.rosterNumber} assigned to ${winner.employeeName} (ID: ${winner.employeeId})`);
+                    
+                    processedResults.push({
+                        roster: roster,
+                        winner: winner,
+                        allBidders: [...roster.bids]
+                    });
+                } else {
+                    console.log(`✗ No available bidders for Roster #${roster.rosterNumber} (all bidders already won a roster)`);
+                }
+            });
+            
+            console.log('=== PROCESSING COMPLETE ===');
+            console.log('Total assigned:', assignedCount);
+            console.log('Employees who won rosters:', Array.from(assignedEmployees));
+            console.log('Processed results count:', processedResults.length);
+            
+            if (resultDiv) {
+                resultDiv.innerHTML = `
+                    <div class="success-message">
+                        ✅ <strong>Processing Complete!</strong><br><br>
+                        📊 Assigned <strong>${assignedCount}</strong> rosters to <strong>${assignedEmployees.size}</strong> employees<br>
+                        ⚖️ Rule applied: Each employee wins maximum 1 roster<br>
+                        🏆 Assignments based on seniority (lower ID = higher priority)<br><br>
+                        👉 Go to "View Results" tab to see detailed assignments
+                    </div>
+                `;
+            }
+            
+            console.log('Calling renderResultsTab...');
+            renderResultsTab();
+            
+            console.log('Calling updateSummary...');
+            updateSummary();
+            
+            console.log('All done!');
+            alert(`✅ Success!\n\nAssigned ${assignedCount} rosters to ${assignedEmployees.size} employees.\n\nEach employee won maximum 1 roster.\n\nCheck the "View Results" tab!`);
+        }
+
+        function renderResultsTab() {
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+            
+            if (processedResults.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 32px; color: #64748b;">No results yet. Process bids in the "Process Bids" tab.</td></tr>';
+                return;
+            }
+            
+            processedResults.forEach(result => {
+                const seniorityRank = employees.findIndex(e => e.id == result.winner.employeeId) + 1;
+                const row = document.createElement('tr');
+                row.style.background = '#f0fdf4';
+                row.innerHTML = `
+                    <td><strong>Roster #${result.roster.rosterNumber}</strong></td>
+                    <td>${result.roster.department}</td>
+                    <td><strong style="color: #059669;">${result.winner.employeeName} (ID: ${result.winner.employeeId})</strong></td>
+                    <td><strong>#${seniorityRank}</strong></td>
+                    <td style="font-size: 12px;">
+                        ${result.allBidders.map((b, i) => {
+                            const rank = employees.findIndex(e => e.id == b.employeeId) + 1;
+                            return `${i === 0 ? '🏆 ' : ''}${b.employeeName} (ID: ${b.employeeId}, Rank: #${rank})`;
+                        }).join(' | ')}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateSummary() {
+            const totalRosters = rosters.length;
+            const assignedRosters = rosters.filter(r => r.status === 'assigned').length;
+            const openRosters = totalRosters - assignedRosters;
+            const totalBids = rosters.reduce((sum, r) => sum + r.bids.length, 0);
+            
+            document.getElementById('summary-total').textContent = totalRosters;
+            document.getElementById('summary-assigned').textContent = assignedRosters;
+            document.getElementById('summary-open').textContent = openRosters;
+            document.getElementById('summary-bids').textContent = totalBids;
+            
+            // Employee statistics
+            const empStats = {};
+            
+            rosters.forEach(roster => {
+                roster.bids.forEach(bid => {
+                    if (!empStats[bid.employeeId]) {
+                        empStats[bid.employeeId] = {
+                            name: bid.employeeName,
+                            department: bid.department,
+                            bidsPlaced: 0,
+                            rostersWon: 0
+                        };
+                    }
+                    empStats[bid.employeeId].bidsPlaced++;
+                });
+                
+                if (roster.assignedTo) {
+                    if (!empStats[roster.assignedTo.employeeId]) {
+                        empStats[roster.assignedTo.employeeId] = {
+                            name: roster.assignedTo.employeeName,
+                            department: roster.assignedTo.department,
+                            bidsPlaced: 0,
+                            rostersWon: 0
+                        };
+                    }
+                    empStats[roster.assignedTo.employeeId].rostersWon++;
+                }
+            });
+            
+            const tbody = document.getElementById('summary-tbody');
+            tbody.innerHTML = '';
+            
+            if (Object.keys(empStats).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: #64748b;">No bidding activity yet</td></tr>';
+                return;
+            }
+            
+            Object.keys(empStats).sort((a, b) => a - b).forEach(empId => {
+                const stats = empStats[empId];
+                const successRate = stats.bidsPlaced > 0 ? ((stats.rostersWon / stats.bidsPlaced) * 100).toFixed(0) : 0;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${empId}</strong></td>
+                    <td>${stats.name}</td>
+                    <td>${stats.department}</td>
+                    <td>${stats.bidsPlaced}</td>
+                    <td><strong style="color: #059669;">${stats.rostersWon}</strong></td>
+                    <td><strong>${successRate}%</strong></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function exportResults() {
+            if (processedResults.length === 0) {
+                alert('No results to export. Process bids first.');
+                return;
+            }
+            
+            let csv = 'Roster Number,Department,Winner Name,Winner ID,Winner Seniority Rank,All Bidders\n';
+            processedResults.forEach(result => {
+                const seniorityRank = employees.findIndex(e => e.id == result.winner.employeeId) + 1;
+                csv += `${result.roster.rosterNumber},${result.roster.department},${result.winner.employeeName},${result.winner.employeeId},#${seniorityRank},"${result.allBidders.map(b => `${b.employeeName} (ID: ${b.employeeId})`).join(', ')}"\n`;
+            });
+            
+            downloadCSV(csv, 'roster-assignments-results.csv');
+        }
+
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function clearAllBids() {
+            if (!confirm('Clear all bids? This will remove all employee bids and reset assignments.')) {
+                return;
+            }
+            
+            rosters.forEach(roster => {
+                roster.bids = [];
+                roster.assignedTo = null;
+                roster.status = 'available';
+            });
+            
+            processedResults = [];
+            myBids.clear();
+            
+            updateRosterView();
+            updateProcessTab();
+            renderResultsTab();
+            updateSummary();
+            
+            document.getElementById('process-result').innerHTML = '<div class="success-message">✅ All bids cleared successfully.</div>';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach((tab, index) => {
+                if (tab.textContent.toLowerCase().includes(tabName)) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'browse') {
+                updateRosterView();
+            } else if (tabName === 'process') {
+                updateProcessTab();
+            } else if (tabName === 'results') {
+                renderResultsTab();
+            } else if (tabName === 'summary') {
+                updateSummary();
+            }
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up tab click handlers properly
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabText = this.textContent.toLowerCase();
+                    if (tabText.includes('upload')) switchTabFixed('upload');
+                    else if (tabText.includes('browse')) switchTabFixed('browse');
+                    else if (tabText.includes('process')) switchTabFixed('process');
+                    else if (tabText.includes('results')) switchTabFixed('results');
+                    else if (tabText.includes('summary')) switchTabFixed('summary');
+                });
+            });
+        });
+        
+        function switchTabFixed(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(tabName)) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'browse') {
+                updateRosterView();
+            } else if (tabName === 'process') {
+                updateProcessTab();
+            } else if (tabName === 'results') {
+                renderResultsTab();
+            } else if (tabName === 'summary') {
+                updateSummary();
+            }
+        }
+    </script>
+</body>
+</html>
