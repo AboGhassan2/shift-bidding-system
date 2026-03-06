@@ -1,1514 +1,1512 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Employees Shift Bidding System</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-            color: white;
-            padding: 24px;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        
-        .tabs {
-            display: flex;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            overflow-x: auto;
-        }
-        
-        .tab {
-            padding: 16px 24px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            font-weight: 500;
-            color: #64748b;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-        
-        .tab:hover {
-            background: #f1f5f9;
-        }
-        
-        .tab.active {
-            color: #2563eb;
-            border-bottom-color: #2563eb;
-            background: white;
-        }
-        
-        .content {
-            padding: 24px;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .drop-zone {
-            border: 3px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 60px 40px;
-            text-align: center;
-            background: #f8fafc;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .drop-zone.drag-over {
-            border-color: #2563eb;
-            background: #eff6ff;
-            transform: scale(1.02);
-        }
-        
-        .drop-zone-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-        }
-        
-        .drop-zone h3 {
-            color: #1e293b;
-            margin-bottom: 12px;
-            font-size: 20px;
-        }
-        
-        .drop-zone p {
-            color: #64748b;
-            margin-bottom: 20px;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        
-        .btn-primary {
-            background: #2563eb;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #1d4ed8;
-        }
-        
-        .btn-secondary {
-            background: #f1f5f9;
-            color: #475569;
-        }
-        
-        .btn-secondary:hover {
-            background: #e2e8f0;
-        }
-        
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #059669;
-        }
-        
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-        
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        
-        input[type="file"] {
-            display: none;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        
-        .filter-group {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        
-        .filter-group label {
-            font-size: 14px;
-            color: #475569;
-            font-weight: 500;
-        }
-        
-        .filter-group select, .filter-group input {
-            padding: 8px 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-        
-        .roster-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-        
-        .roster-card {
-            background: white;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 16px;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .roster-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
-        }
-        
-        .roster-card.selected {
-            border-color: #2563eb;
-            background: #eff6ff;
-        }
-        
-        .roster-card.cannot-bid {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #fef2f2;
-        }
-        
-        .roster-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .roster-number {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2563eb;
-        }
-        
-        .roster-department {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #dbeafe;
-            color: #1e40af;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .shifts-container {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            margin-bottom: 12px;
-        }
-        
-        .shift-day {
-            text-align: center;
-            padding: 6px 4px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-        
-        .shift-day-header {
-            background: #f1f5f9;
-            color: #64748b;
-            font-size: 9px;
-            padding: 4px 2px;
-        }
-        
-        .shift-off {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .shift-vacation {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .shift-tandev {
-            background: #fed7aa;
-            color: #9a3412;
-        }
-        
-        .shift-regular {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        
-        .shift-empty {
-            background: #f1f5f9;
-            color: #94a3b8;
-        }
-        
-        .roster-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #e2e8f0;
-        }
-        
-        .bid-status {
-            font-size: 12px;
-            color: #64748b;
-        }
-        
-        .bid-count {
-            display: inline-block;
-            padding: 4px 8px;
-            background: #eff6ff;
-            color: #2563eb;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        
-        .instructions {
-            background: #eff6ff;
-            border-left: 4px solid #2563eb;
-            padding: 16px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        
-        .instructions h3 {
-            color: #1e40af;
-            margin-bottom: 8px;
-            font-size: 16px;
-        }
-        
-        .instructions ul {
-            margin-left: 20px;
-            color: #1e40af;
-        }
-        
-        .instructions li {
-            margin-bottom: 6px;
-            font-size: 14px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        
-        .stat-card {
-            background: #f8fafc;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .stat-card h4 {
-            font-size: 12px;
-            color: #64748b;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
-        
-        .stat-card .value {
-            font-size: 28px;
-            font-weight: 600;
-            color: #1e293b;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 48px;
-            color: #64748b;
-        }
-        
-        .success-message {
-            padding: 16px;
-            background: #d1fae5;
-            border-radius: 8px;
-            color: #065f46;
-            margin-top: 16px;
-        }
-        
-        .error-message {
-            padding: 16px;
-            background: #fee2e2;
-            border-radius: 8px;
-            color: #991b1b;
-            margin-top: 16px;
-        }
-        
-        .warning-message {
-            padding: 16px;
-            background: #fef3c7;
-            border-radius: 8px;
-            color: #92400e;
-            margin-top: 16px;
-        }
-        
-        .info-message {
-            padding: 16px;
-            background: #eff6ff;
-            border-radius: 8px;
-            color: #1e40af;
-            margin-top: 16px;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 16px;
-            font-size: 13px;
-        }
-        
-        th {
-            background: #f8fafc;
-            padding: 10px;
-            text-align: left;
-            font-weight: 600;
-            color: #475569;
-            border-bottom: 2px solid #e2e8f0;
-            position: sticky;
-            top: 0;
-        }
-        
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        tr:hover {
-            background: #f9fafb;
-        }
-        
-        .legend {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin: 16px 0;
-            padding: 12px;
-            background: #f8fafc;
-            border-radius: 6px;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-        }
-        
-        .legend-color {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-        }
-        
-        .my-bids-section {
-            background: #f0fdf4;
-            border: 2px solid #86efac;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .my-bids-section h3 {
-            color: #065f46;
-            margin-bottom: 12px;
-        }
-        
-        .bid-item {
-            display: inline-block;
-            margin: 4px;
-            padding: 6px 12px;
-            background: white;
-            border: 1px solid #86efac;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shift Roster System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#0d0f14;--surface:#13161e;--surface2:#1a1e28;--surface3:#21263a;--border:#2a2f42;--accent:#4f8ef7;--accent2:#7c5cfc;--accent3:#34d399;--warn:#f59e0b;--danger:#f43f5e;--text:#e2e8f0;--text2:#94a3b8;--text3:#4a5568;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:-30%;left:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(79,142,247,0.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:50%;background:radial-gradient(ellipse,rgba(124,92,252,0.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+.login-wrap{width:100%;max-width:900px;padding:32px;display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.login-header{grid-column:1/-1;text-align:center;margin-bottom:8px;}
+.login-header .icon{font-size:52px;margin-bottom:12px;}
+.login-header h1{font-size:28px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(90deg,var(--text),var(--text2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.login-header p{color:var(--text2);font-size:13px;margin-top:6px;font-family:'DM Mono',monospace;}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:32px;position:relative;overflow:hidden;transition:all 0.2s;}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.login-card.planner::before{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.login-card.staff::before{background:linear-gradient(90deg,var(--accent3),#0ea5e9);}
+.login-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.4);}
+.login-card h2{font-size:20px;font-weight:800;margin-bottom:6px;}
+.login-card .role-desc{font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;margin-bottom:22px;line-height:1.5;}
+.login-field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.login-field label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text2);letter-spacing:1px;text-transform:uppercase;}
+.login-field input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-size:14px;font-family:'Syne',sans-serif;outline:none;transition:border-color 0.15s;width:100%;}
+.login-field input:focus{border-color:var(--accent);}
+.login-error{font-size:12px;color:var(--danger);font-family:'DM Mono',monospace;min-height:18px;margin-bottom:10px;}
+.btn-login-planner{background:var(--accent);color:white;border:none;border-radius:8px;padding:12px 24px;width:100%;font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:all 0.15s;}
+.btn-login-planner:hover{background:#3a7aed;}
+.btn-login-staff{background:var(--accent3);color:#0d1117;border:none;border-radius:8px;padding:12px 24px;width:100%;font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:all 0.15s;}
+.btn-login-staff:hover{background:#2ec984;}
+.login-hint{font-size:11px;color:var(--text3);text-align:center;margin-top:10px;font-family:'DM Mono',monospace;}
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;background:rgba(13,15,20,0.92);backdrop-filter:blur(12px);}
+.header-icon{width:38px;height:38px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.header-text h1{font-size:17px;font-weight:800;letter-spacing:-0.3px;background:linear-gradient(90deg,var(--text),var(--text2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.header-text p{font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:1px;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.header-badge{padding:4px 12px;background:rgba(79,142,247,0.12);border:1px solid rgba(79,142,247,0.3);border-radius:16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);}
+.header-badge.green{background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.25);color:var(--accent3);}
+.header-badge.warn{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.25);color:var(--warn);}
+.user-badge{display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:12px;font-family:'DM Mono',monospace;}
+.user-dot{width:8px;height:8px;border-radius:50%;}
+.user-dot.planner{background:var(--accent);}
+.user-dot.staff{background:var(--accent3);}
+.btn-logout{padding:5px 12px;background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.25);border-radius:8px;color:#f87171;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.15s;}
+.btn-logout:hover{background:rgba(244,63,94,0.2);}
+
+/* LAYOUT */
+.main{position:relative;z-index:1;display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 65px);}
+.sidebar{border-right:1px solid var(--border);padding:20px 0;background:var(--surface);position:sticky;top:65px;height:calc(100vh - 65px);overflow-y:auto;}
+.sidebar-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px;color:var(--text3);text-transform:uppercase;padding:14px 14px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;transition:all 0.15s;position:relative;margin:2px 6px;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(79,142,247,0.12);color:var(--accent);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;height:60%;width:3px;background:var(--accent);border-radius:0 3px 3px 0;}
+.nav-icon{font-size:14px;width:18px;text-align:center;}
+.nav-badge{margin-left:auto;padding:2px 7px;background:var(--accent);color:white;border-radius:10px;font-size:10px;font-family:'DM Mono',monospace;}
+.nav-badge.warn{background:var(--warn);color:#0d1117;}
+
+/* CONTENT */
+.content{padding:28px 36px;overflow-y:auto;}
+.tab-panel{display:none;}.tab-panel.active{display:block;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.section-header{margin-bottom:24px;}.section-header h2{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:5px;}.section-header p{color:var(--text2);font-size:13px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;}
+.card-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;font-family:'DM Mono',monospace;}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:36px 28px;text-align:center;cursor:pointer;transition:all 0.25s;background:var(--surface2);}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(79,142,247,0.05);transform:scale(1.01);}
+.upload-zone-icon{font-size:44px;margin-bottom:12px;}
+.upload-zone h3{font-size:17px;font-weight:700;margin-bottom:7px;}
+.upload-zone p{color:var(--text2);font-size:13px;margin-bottom:14px;}
+.upload-zone .hint{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:8px;}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:18px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;}
+.form-group select,.form-group input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-size:14px;font-family:'Syne',sans-serif;outline:none;transition:border-color 0.15s;}
+.form-group select:focus,.form-group input:focus{border-color:var(--accent);}
+.form-group select option{background:var(--surface2);}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;transition:all 0.15s;display:inline-flex;align-items:center;gap:7px;}
+.btn-primary{background:var(--accent);color:white;}.btn-primary:hover{background:#3a7aed;transform:translateY(-1px);}
+.btn-success{background:var(--accent3);color:#0d1117;}.btn-success:hover{background:#2ec984;transform:translateY(-1px);}
+.btn-danger{background:var(--danger);color:white;}.btn-danger:hover{background:#e02b4a;}
+.btn-warn{background:var(--warn);color:#0d1117;}.btn-warn:hover{background:#e08a00;}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}.btn-ghost:hover{background:var(--surface3);color:var(--text);}
+.btn-sm{padding:6px 13px;font-size:11px;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:22px;}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.stat-card .label{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;}
+.stat-card .value{font-size:28px;font-weight:800;line-height:1;color:var(--text);}
+.stat-card.accent .value{color:var(--accent);}.stat-card.success .value{color:var(--accent3);}
+.stat-card.warn .value{color:var(--warn);}.stat-card.danger .value{color:var(--danger);}
+.stat-card.purple .value{color:#a78bfa;}
+
+/* TABLES */
+.data-table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{background:var(--surface2);padding:9px 13px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;border-bottom:1px solid var(--border);}
+.data-table td{padding:9px 13px;border-bottom:1px solid rgba(42,47,66,0.5);color:var(--text);vertical-align:top;}
+.data-table tr:hover td{background:rgba(255,255,255,0.015);}
+.winner-row td{background:rgba(52,211,153,0.04);}
+.reward-row td{background:rgba(245,158,11,0.04);}
+
+/* SHIFT PILLS */
+.shift-pill{display:inline-block;padding:2px 7px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;margin:1px;}
+.pill-E{background:rgba(255,112,67,0.2);color:#ff7043;}.pill-L{background:rgba(66,165,245,0.2);color:#42a5f5;}
+.pill-N{background:rgba(171,71,188,0.2);color:#ab47bc;}.pill-E1{background:rgba(255,138,101,0.2);color:#ff8a65;}
+.pill-L1{background:rgba(92,142,247,0.2);color:#5c8ef7;}.pill-L2{background:rgba(61,125,232,0.2);color:#3d7de8;}
+.pill-N1{background:rgba(156,63,207,0.2);color:#9c3fcf;}.pill-OFF{background:rgba(55,71,79,0.4);color:#78909c;}
+
+/* ROSTER CARDS */
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:14px;}
+.roster-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.roster-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity 0.2s;}
+.roster-card:hover{border-color:rgba(79,142,247,0.4);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.roster-card:hover::before{opacity:1;}
+.roster-card.selected{border-color:var(--accent);background:rgba(79,142,247,0.05);}
+.roster-card.selected::before{opacity:1;}
+.roster-card.cannot-bid{opacity:0.35;cursor:not-allowed;}
+.roster-card.cannot-bid:hover{transform:none;box-shadow:none;}
+.roster-card.assigned{border-color:rgba(52,211,153,0.4);background:rgba(52,211,153,0.03);}
+.roster-card.reward{border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.03);}
+.roster-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.roster-num{font-size:16px;font-weight:800;color:var(--accent);font-family:'DM Mono',monospace;}
+.roster-dept-badge{padding:2px 8px;background:rgba(124,92,252,0.15);border:1px solid rgba(124,92,252,0.3);border-radius:4px;font-size:9px;font-family:'DM Mono',monospace;color:#a78bfa;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shift-strip{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:9px;}
+.shift-cell{width:18px;height:21px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-family:'DM Mono',monospace;font-weight:500;}
+.cell-E{background:rgba(255,112,67,0.25);color:#ff7043;border:1px solid rgba(255,112,67,0.4);}
+.cell-L{background:rgba(66,165,245,0.25);color:#42a5f5;border:1px solid rgba(66,165,245,0.4);}
+.cell-N{background:rgba(171,71,188,0.25);color:#ab47bc;border:1px solid rgba(171,71,188,0.4);}
+.cell-E1{background:rgba(255,138,101,0.25);color:#ff8a65;border:1px solid rgba(255,138,101,0.4);}
+.cell-L1{background:rgba(92,142,247,0.25);color:#5c8ef7;border:1px solid rgba(92,142,247,0.4);}
+.cell-L2{background:rgba(61,125,232,0.25);color:#3d7de8;border:1px solid rgba(61,125,232,0.4);}
+.cell-N1{background:rgba(156,63,207,0.25);color:#9c3fcf;border:1px solid rgba(156,63,207,0.4);}
+.cell-OFF{background:rgba(55,71,79,0.3);color:#607d8b;border:1px solid rgba(55,71,79,0.5);}
+.cell-VAC{background:rgba(38,166,154,0.2);color:#26a69a;border:1px solid rgba(38,166,154,0.4);}
+.cell-CONT{outline:2px solid var(--warn);outline-offset:-1px;}
+.roster-card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:9px;border-top:1px solid var(--border);}
+.bid-label{font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;}
+.bid-count-badge{padding:2px 8px;background:rgba(79,142,247,0.12);border:1px solid rgba(79,142,247,0.25);border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);}
+
+/* MY BIDS PANEL */
+.my-bids-panel{background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.2);border-radius:10px;padding:12px;margin-bottom:14px;}
+.my-bids-panel h3{font-size:11px;color:var(--accent3);margin-bottom:7px;font-family:'DM Mono',monospace;}
+.bid-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--surface2);border:1px solid rgba(52,211,153,0.2);border-radius:5px;font-size:11px;margin:2px;color:var(--accent3);font-family:'DM Mono',monospace;}
+
+/* EMP INFO BAR */
+.emp-info-bar{padding:10px 15px;border-radius:8px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.emp-info-bar.found{background:rgba(79,142,247,0.08);border:1px solid rgba(79,142,247,0.2);}
+.emp-info-bar.nope{background:rgba(244,63,94,0.08);border:1px solid rgba(244,63,94,0.2);color:#f87171;}
+.emp-info-bar.warn{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);color:var(--warn);}
+.emp-tag{padding:2px 8px;background:rgba(79,142,247,0.15);border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);}
+
+/* ALERTS */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:12px;display:flex;align-items:flex-start;gap:9px;}
+.alert-success{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);color:var(--accent3);}
+.alert-warn{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--warn);}
+.alert-danger{background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.25);color:#f87171;}
+.alert-info{background:rgba(79,142,247,0.08);border:1px solid rgba(79,142,247,0.2);color:#93c5fd;}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:9px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
+.legend-dot{width:9px;height:9px;border-radius:2px;}
+
+/* LOG */
+#gen-log{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent3);max-height:160px;overflow-y:auto;line-height:1.9;display:none;}
+
+/* MISC */
+.controls-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;}
+.info-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text2);}
+.carry-banner{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:13px 17px;margin-bottom:18px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--warn);}
+.dept-table{width:100%;border-collapse:collapse;font-size:13px;}
+.dept-table th{background:var(--surface2);padding:8px 12px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;border-bottom:1px solid var(--border);}
+.dept-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+.dept-table tr:hover td{background:var(--surface2);}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--surface);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media(max-width:768px){.main{grid-template-columns:1fr;}.sidebar{display:none;}.content{padding:18px;}.login-wrap{grid-template-columns:1fr;}}
+
+/* STAFF VIEW — simplified bid portal */
+.staff-portal{max-width:860px;margin:0 auto;}
+.staff-welcome{background:linear-gradient(135deg,rgba(79,142,247,0.1),rgba(124,92,252,0.1));border:1px solid rgba(79,142,247,0.2);border-radius:14px;padding:24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;}
+.staff-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.staff-welcome h2{font-size:20px;font-weight:800;}
+.staff-welcome p{font-size:13px;color:var(--text2);margin-top:4px;}
+</style>
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚂 Shift Bidding System powered by Ameen </h1>
-            <p>Browse Roster Patterns | Bid on Your Preferred Schedule | Seniority-Based Assignment</p>
-        </div>
-        
-                    <div class="tabs">
-            <div class="tab active" data-tab="upload">1. Upload Roster</div>
-            <div class="tab" data-tab="browse">2. Browse & Bid</div>
-            <div class="tab" data-tab="process">3. Process Bids</div>
-            <div class="tab" data-tab="results">4. View Results</div>
-            <div class="tab" data-tab="summary">5. Summary</div>
-        </div>
-        
-        <div class="content">
-            <!-- Upload Tab -->
-            <div class="tab-content active" id="upload-tab">
-                <div class="instructions">
-                    <h3>📋 How This System Works</h3>
-                    <ul>
-                        <li><strong>Step 1:</strong> Upload your Excel roster file</li>
-                        <li><strong>Step 2:</strong> System creates roster patterns (each pattern shows a complete monthly schedule)</li>
-                        <li><strong>Step 3:</strong> Employees browse roster patterns and bid on their preferred ones</li>
-                        <li><strong>Step 4:</strong> Employees can only bid on rosters from their department</li>
-                        <li><strong>Step 5:</strong> System assigns rosters based on seniority (lower Employee ID = higher priority)</li>
-                    </ul>
-                </div>
-                
-                <div class="drop-zone" id="drop-zone">
-                    <div class="drop-zone-icon">📁</div>
-                    <h3>Drag & Drop Excel File Here</h3>
-                    <p>or click to browse files</p>
-                    <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
-                        Choose File
-                    </button>
-                    <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
-                    <p style="margin-top: 12px; font-size: 12px; color: #94a3b8;">
-                        Supported formats: .xlsx, .xls
-                    </p>
-                </div>
-                
-                <div id="upload-status"></div>
-                
-                <div id="employee-preview" style="margin-top: 24px; display: none;">
-                    <h3 style="margin-bottom: 12px;">Loaded Employees</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Employee ID</th>
-                                <th>Name</th>
-                                <th>Department</th>
-                                <th>Seniority Rank</th>
-                            </tr>
-                        </thead>
-                        <tbody id="employee-tbody"></tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <!-- Browse & Bid Tab -->
-            <div class="tab-content" id="browse-tab">
-                <div class="instructions">
-                    <h3>👥 Browse Roster Patterns & Place Your Bids</h3>
-                    <ul>
-                        <li>Enter your Employee ID to start bidding</li>
-                        <li>Each card shows a complete roster pattern (Roster #) with all shifts for the month</li>
-                        <li>You can ONLY bid on rosters from YOUR department</li>
-                        <li>Click on roster cards to select/deselect your preferred patterns</li>
-                        <li>Selected rosters are highlighted in blue</li>
-                        <li>Rosters from other departments are grayed out</li>
-                    </ul>
-                </div>
-                
-                <div class="controls">
-                    <div class="filter-group">
-                        <label>Your Employee ID:</label>
-                        <input type="number" id="current-employee-id" placeholder="Enter ID" style="width: 150px;" onkeypress="if(event.key==='Enter') updateRosterView()">
-                        <button class="btn btn-primary" onclick="updateRosterView()">↵ Enter</button>
-                    </div>
-                    <div class="filter-group">
-                        <label>Filter Department:</label>
-                        <select id="filter-department" onchange="updateRosterView()">
-                            <option value="">All Departments</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Show:</label>
-                        <select id="filter-type" onchange="updateRosterView()">
-                            <option value="all">All Rosters</option>
-                            <option value="my-dept">My Department Only</option>
-                            <option value="my-bids">My Bids Only</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color shift-off">OFF</div>
-                        <span>Day Off</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color shift-tandev">TAN</div>
-                        <span>Training/Development</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color shift-vacation">VAC</div>
-                        <span>Vacation</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color shift-regular">A/B/C</div>
-                        <span>Regular Shifts</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color shift-empty">-</div>
-                        <span>Empty/Available</span>
-                    </div>
-                </div>
-                
-                <div id="current-employee-info"></div>
-                
-                <div id="my-bids-container"></div>
-                
-                <div id="roster-grid" class="roster-grid"></div>
-            </div>
-            
-            <!-- Process Bids Tab -->
-            <div class="tab-content" id="process-tab">
-                <div class="instructions">
-                    <h3>🔧 Process Bids (Manager Only)</h3>
-                    <ul>
-                        <li>Review all bids placed by employees</li>
-                        <li>Click "Process All Bids" to automatically assign rosters</li>
-                        <li>System assigns based on seniority (lower Employee ID = higher priority)</li>
-                        <li>Each employee can only win rosters from their own department</li>
-                    </ul>
-                </div>
-                
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                    <h3 style="margin-bottom: 12px;">Bidding Status</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <h4>Total Rosters</h4>
-                            <div class="value" id="process-total-rosters">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <h4>Rosters with Bids</h4>
-                            <div class="value" id="process-rosters-with-bids">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <h4>Total Bids Placed</h4>
-                            <div class="value" id="process-total-bids">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <h4>Unique Bidders</h4>
-                            <div class="value" id="process-unique-bidders">0</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px;">
-                        <button class="btn btn-success" style="font-size: 16px; padding: 12px 24px;" onclick="event.preventDefault(); event.stopPropagation(); processAllBids(); return false;">
-                            🎯 Process All Bids (Assign by Seniority)
-                        </button>
-                        <button class="btn btn-danger" style="margin-left: 12px;" onclick="event.preventDefault(); event.stopPropagation(); clearAllBids(); return false;">
-                            Clear All Bids
-                        </button>
-                    </div>
-                    
-                    <div id="process-result"></div>
-                </div>
-                
-                <h3 style="margin-bottom: 12px;">All Bids Review</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Roster #</th>
-                            <th>Department</th>
-                            <th>Bidders (Sorted by Seniority)</th>
-                            <th>Total Bids</th>
-                        </tr>
-                    </thead>
-                    <tbody id="process-tbody"></tbody>
-                </table>
-            </div>
-            
-            <!-- Results Tab -->
-            <div class="tab-content" id="results-tab">
-                <div class="instructions">
-                    <h3>📊 Assignment Results</h3>
-                    <ul>
-                        <li>View all roster assignments after processing</li>
-                        <li>Winners are highlighted</li>
-                        <li>Export results to update your main roster</li>
-                    </ul>
-                </div>
-                
-                <div class="controls">
-                    <button class="btn btn-primary" onclick="exportResults()">📥 Export Results (CSV)</button>
-                </div>
-                
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Roster #</th>
-                            <th>Department</th>
-                            <th>Winner (Assigned To)</th>
-                            <th>Winner Seniority Rank</th>
-                            <th>All Bidders</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-tbody"></tbody>
-                </table>
-            </div>
-            
-            <!-- Summary Tab -->
-            <div class="tab-content" id="summary-tab">
-                <h2 style="margin-bottom: 20px;">📊 Final Summary</h2>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <h4>Total Rosters</h4>
-                        <div class="value" id="summary-total">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Rosters Assigned</h4>
-                        <div class="value" id="summary-assigned">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Rosters Still Open</h4>
-                        <div class="value" id="summary-open">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Total Bids Processed</h4>
-                        <div class="value" id="summary-bids">0</div>
-                    </div>
-                </div>
-                
-                <h3 style="margin: 24px 0 16px;">Employee Bidding Activity</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Employee ID</th>
-                            <th>Employee Name</th>
-                            <th>Department</th>
-                            <th>Bids Placed</th>
-                            <th>Rosters Won</th>
-                            <th>Success Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody id="summary-tbody"></tbody>
-                </table>
-            </div>
-        </div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-header">
+      <div class="icon">🚂</div>
+      <h1>Shift Roster System</h1>
+      <p>powered by Ameen · Select your role to continue</p>
     </div>
+    <div class="login-card planner">
+      <h2>🗂️ Planner Login</h2>
+      <div class="role-desc">Admin · Upload employees · Generate rosters · Process bids</div>
+      <div class="login-field"><label>Username</label>
+        <input type="text" id="planner-user" placeholder="planner" onkeydown="if(event.key==='Enter')doLogin('planner')"></div>
+      <div class="login-field"><label>Password</label>
+        <input type="password" id="planner-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin('planner')"></div>
+      <div class="login-error" id="planner-err"></div>
+      <button class="btn-login-planner" onclick="doLogin('planner')">Login as Planner →</button>
+      <div class="login-hint">Default: planner / planner123</div>
+    </div>
+    <div class="login-card staff">
+      <h2>👤 Staff Login</h2>
+      <div class="role-desc">Submit shift bids · View your roster assignment</div>
+      <div class="login-field"><label>Employee ID</label>
+        <input type="text" id="staff-empid" placeholder="e.g. EMP0001" onkeydown="if(event.key==='Enter')doLogin('staff')"></div>
+      <div class="login-field"><label>Password</label>
+        <input type="password" id="staff-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin('staff')"></div>
+      <div class="login-error" id="staff-err"></div>
+      <button class="btn-login-staff" onclick="doLogin('staff')">Login as Staff →</button>
+      <div class="login-hint">Default password: staff123</div>
+    </div>
+  </div>
+</div>
 
-    <script>
-        let employees = [];
-        let rosters = []; // Each roster is a complete monthly schedule pattern
-        let dateColumns = [];
-        let allDepartments = new Set();
-        let processedResults = [];
-        let myBids = new Set();
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="header">
+    <div class="header-icon">🚂</div>
+    <div class="header-text">
+      <h1>Shift Roster System</h1>
+      <p>Generator · Bidding · powered by Ameen</p>
+    </div>
+    <div class="header-right">
+      <span class="header-badge green" id="hdr-emp-count" style="display:none">0 employees</span>
+      <span class="header-badge warn" id="hdr-prev-month" style="display:none">↩ carry-over</span>
+      <div class="user-badge"><div class="user-dot" id="user-dot"></div><span id="user-label">—</span></div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="main">
+    <nav class="sidebar" id="sidebar"></nav>
+    <div class="content" id="content-area"></div>
+  </div>
+</div>
 
-        // Drag and drop handlers
-        const dropZone = document.getElementById('drop-zone');
-        
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
-        
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-        });
-        
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                handleFile(file);
-            }
-        });
-        
-        dropZone.addEventListener('click', () => {
-            document.getElementById('file-input').click();
-        });
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════
+const PLANNER_CREDS = {user:'planner', pass:'planner123'};
+const STAFF_PASS    = 'staff123';
+const LS_STATE_KEY  = 'rosterState_v1';   // ← persists rosters+employees+bids
+const LS_ARCH_KEY   = 'rosterArchive_v3'; // ← persists month archive
 
-        function handleFile(file) {
-            if (!file) return;
-            
-            const statusDiv = document.getElementById('upload-status');
-            statusDiv.innerHTML = '<div class="warning-message">📂 Reading file...</div>';
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-                    
-                    processExcelData(jsonData);
-                    
-                    statusDiv.innerHTML = `
-                        <div class="success-message">
-                            ✅ File loaded successfully!<br>
-                            Found ${employees.length} employees and created ${rosters.length} roster patterns across ${allDepartments.size} departments.
-                        </div>
-                    `;
-                    
-                    document.getElementById('employee-preview').style.display = 'block';
-                    displayEmployees();
-                    
-                } catch (error) {
-                    statusDiv.innerHTML = `
-                        <div class="error-message">
-                            ❌ Error reading file: ${error.message}
-                        </div>
-                    `;
-                }
+const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+const DEPT_CONFIGS = [
+  {dept:'L3 SAMB',    line:'L3', position:'SAMB', headcount:68,  shifts:['E','L']},
+  {dept:'L3-LSS/SS',  line:'L3', position:'SS',   headcount:89,  shifts:['E','L','N']},
+  {dept:'L3-SA',      line:'L3', position:'SA',   headcount:172, shifts:['E','L']},
+  {dept:'L3-TA-T',    line:'L3', position:'OTHER',headcount:156, shifts:['E1','L1','L2','N1']},
+  {dept:'L3-DEP-DC',  line:'L3', position:'OTHER',headcount:9,   shifts:['E','L','N']},
+  {dept:'L3-DEP-DM',  line:'L3', position:'OTHER',headcount:5,   shifts:['E','L','N']},
+  {dept:'L3-DEP-EFC', line:'L3', position:'OTHER',headcount:5,   shifts:['E','L','N']},
+  {dept:'L3-DEP-GSM', line:'L3', position:'OTHER',headcount:5,   shifts:['E','L']},
+  {dept:'L3-DEP-SC',  line:'L3', position:'OTHER',headcount:6,   shifts:['E','L','N']},
+  {dept:'L3-DEP-TC',  line:'L3', position:'OTHER',headcount:10,  shifts:['E','L','N']},
+  {dept:'L3-P&R',     line:'L3', position:'OTHER',headcount:40,  shifts:['E','L','N']},
+  {dept:'L3-DS',      line:'L3', position:'OTHER',headcount:12,  shifts:['E','L','N']},
+  {dept:'L46 SAMB',   line:'L46',position:'SAMB', headcount:69,  shifts:['E','L']},
+  {dept:'L46-LSS/SS', line:'L46',position:'SS',   headcount:73,  shifts:['E','L','N']},
+  {dept:'L4/6-SA',    line:'L46',position:'SA',   headcount:116, shifts:['E','L']},
+  {dept:'L46-TA-T',   line:'L46',position:'OTHER',headcount:137, shifts:['E1','L1','L2','N1']},
+  {dept:'L46-AOCC',   line:'L46',position:'OTHER',headcount:5,   shifts:['E','L','N']},
+  {dept:'L46-DEP-DC', line:'L46',position:'OTHER',headcount:5,   shifts:['E','L','N']},
+  {dept:'L4/6-DEP-DM',line:'L46',position:'OTHER',headcount:5,  shifts:['E','L','N']},
+  {dept:'L4/6-DEP-EFC',line:'L46',position:'OTHER',headcount:5, shifts:['E','L','N']},
+  {dept:'L46-DEP-GSM',line:'L46',position:'OTHER',headcount:5,   shifts:['E','L']},
+  {dept:'L46-DEP-SC', line:'L46',position:'OTHER',headcount:5,   shifts:['E','L','N']},
+  {dept:'L46-DEP-TC', line:'L46',position:'OTHER',headcount:9,   shifts:['E','L','N']},
+  {dept:'L46-P&R',    line:'L46',position:'OTHER',headcount:15,  shifts:['E','L','N']},
+  {dept:'L5 SAMB',    line:'L5', position:'SAMB', headcount:27,  shifts:['E','L']},
+  {dept:'L5-LSS/SS',  line:'L5', position:'SS',   headcount:55,  shifts:['E','L','N']},
+  {dept:'L5 SA',      line:'L5', position:'SA',   headcount:62,  shifts:['E','L']},
+  {dept:'L5-TA-T',    line:'L5', position:'OTHER',headcount:55,  shifts:['E1','L1','L2','N1']},
+  {dept:'L5-DEP-DC',  line:'L5', position:'OTHER',headcount:4,   shifts:['E','L','N']},
+  {dept:'L5-DEP-DM',  line:'L5', position:'OTHER',headcount:5,   shifts:['E','L','N']},
+  {dept:'L5-DEP-EFC', line:'L5', position:'OTHER',headcount:5,   shifts:['E','L','N']},
+  {dept:'L5-DEP-GSM', line:'L5', position:'OTHER',headcount:4,   shifts:['E','L']},
+  {dept:'L5-DEP-SC',  line:'L5', position:'OTHER',headcount:5,   shifts:['E','L','N']},
+  {dept:'L5-DEP-TC',  line:'L5', position:'OTHER',headcount:5,   shifts:['E','L','N']},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE  — in-memory, mirrored to localStorage on every mutation
+// ═══════════════════════════════════════════════════════════════
+let state = {
+  year: new Date().getFullYear(),
+  month: new Date().getMonth()+1,
+  monthDates: [],
+  uploadedEmployees: [],
+  employees: [],
+  rosters: [],
+  processedResults: [],
+  deptIncludes: {},
+  _pendingArchive: null,
+};
+let _rawFileRows = [];
+let currentUser  = null;
+
+// ── Persist / restore ──────────────────────────────────────────
+function saveState(){
+  try{
+    // Strip shifts[] from every roster — they are large and recomputable.
+    // We store only the skeleton: rosterNumber, dept, line, position, originalEmpId,
+    // status, assignedTo, bids. Shifts are rebuilt on loadState from _pendingArchive offsets.
+    const rostersSlim = state.rosters.map(r=>({
+      rosterNumber: r.rosterNumber,
+      department:   r.department,
+      line:         r.line,
+      position:     r.position,
+      originalEmpId:r.originalEmpId,
+      status:       r.status,
+      assignedTo:   r.assignedTo,
+      bids:         r.bids,
+    }));
+    // Strip employees[] — fully rebuilt from uploadedEmployees on load.
+    // Strip processedResults — rebuilt from rosters on load.
+    // Strip monthDates — recomputed from year+month.
+    const slim = {
+      year:             state.year,
+      month:            state.month,
+      uploadedEmployees:state.uploadedEmployees,
+      rosters:          rostersSlim,
+      _pendingArchive:  state._pendingArchive,
+    };
+    localStorage.setItem(LS_STATE_KEY, JSON.stringify(slim));
+  }catch(e){ console.warn('saveState failed',e); }
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_STATE_KEY);
+    if(!raw) return;
+    const s = JSON.parse(raw);
+    state.year              = s.year   || state.year;
+    state.month             = s.month  || state.month;
+    state.uploadedEmployees = s.uploadedEmployees || [];
+    state._pendingArchive   = s._pendingArchive   || null;
+
+    // Recompute monthDates
+    state.monthDates = getMonthDates(state.year, state.month);
+
+    // Rebuild employees from uploadedEmployees (same data)
+    state.employees = state.uploadedEmployees.map(e=>({...e}));
+
+    // Rehydrate rosters: restore shifts[] from _pendingArchive offsets
+    const pa = state._pendingArchive;
+    state.rosters = (s.rosters||[]).map(r=>{
+      let shifts = [];
+      if(pa && r.originalEmpId && pa.cycleOffsetByEmpId){
+        const dept    = r.department;
+        const shiftTypes = getDeptShifts(dept);
+        const cycle   = buildMasterCycle(shiftTypes);
+        const cLen    = cycle.length;
+        const offset  = pa.cycleOffsetByEmpId[r.originalEmpId];
+        if(offset !== undefined){
+          shifts = state.monthDates.map((d,i)=>{
+            const pos = (i + offset) % cLen;
+            return {
+              date: fmtDate(d),
+              code: cycle[pos].dayType==='OFF' ? 'OFF' : cycle[pos].shift,
+              carryOver: false,
             };
-            reader.readAsArrayBuffer(file);
+          });
         }
+      }
+      if(!shifts.length){
+        // Fallback: generate placeholder shifts so UI doesn't crash
+        shifts = state.monthDates.map(d=>({date:fmtDate(d),code:'?',carryOver:false}));
+      }
+      return {...r, shifts};
+    });
 
-        function processExcelData(data) {
-            if (data.length < 2) return;
-            
-            const headers = data[0];
-            employees = [];
-            rosters = [];
-            dateColumns = [];
-            allDepartments.clear();
-            
-            // Find date columns
-            headers.forEach((header, index) => {
-                if (header && (header.includes('Dag_') || header.includes('Day_'))) {
-                    dateColumns.push({
-                        index: index,
-                        name: header,
-                        shortName: header.split('-')[0].replace('Dag_', '').replace('Day_', '')
-                    });
-                }
-            });
-            
-            let rosterNumber = 1;
-            
-            // Process each employee row - each row becomes one roster pattern
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row || row.length < 3) continue;
-                
-                const employeeId = row[0];
-                const employeeName = row[1];
-                const department = row[2];
-                
-                if (!employeeId || !employeeName || !department) continue;
-                
-                // Add employee if not exists
-                if (!employees.find(e => e.id === employeeId)) {
-                    employees.push({
-                        id: employeeId,
-                        name: employeeName,
-                        department: department,
-                        seniority: employeeId
-                    });
-                }
-                
-                allDepartments.add(department);
-                
-                // Create roster pattern with all shifts
-                const shifts = dateColumns.map(dateCol => ({
-                    date: dateCol.name,
-                    shortDate: dateCol.shortName,
-                    code: row[dateCol.index] || '-'
-                }));
-                
-                rosters.push({
-                    rosterNumber: rosterNumber++,
-                    department: department,
-                    shifts: shifts,
-                    originalEmployeeId: employeeId,
-                    originalEmployeeName: employeeName,
-                    bids: [], // {employeeId, employeeName, seniority, department}
-                    assignedTo: null,
-                    status: 'available'
-                });
-            }
-            
-            // Sort employees by department first, then by seniority within department
-            employees.sort((a, b) => {
-                if (a.department !== b.department) {
-                    return a.department.localeCompare(b.department);
-                }
-                return a.seniority - b.seniority;
-            });
-            
-            populateDepartmentFilter();
-        }
+    // Rebuild processedResults from assigned/reward rosters
+    state.processedResults = state.rosters
+      .filter(r=>r.assignedTo && (r.status==='assigned'||r.status==='reward'))
+      .map(r=>({
+        roster:  r,
+        winner:  r.assignedTo,
+        allBidders: r.bids||[],
+        type: r.status==='reward' ? 'reward' : 'bid',
+      }));
+  }catch(e){ console.warn('loadState failed',e); }
+}
+function clearState(){
+  try{ localStorage.removeItem(LS_STATE_KEY); }catch(e){}
+  state.uploadedEmployees=[];
+  state.employees=[];
+  state.rosters=[];
+  state.processedResults=[];
+  state.monthDates=[];
+  state._pendingArchive=null;
+}
 
-        function displayEmployees() {
-            const tbody = document.getElementById('employee-tbody');
-            tbody.innerHTML = '';
-            
-            employees.forEach((emp, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${emp.id}</strong></td>
-                    <td>${emp.name}</td>
-                    <td>${emp.department}</td>
-                    <td><strong>#${index + 1}</strong></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+// ── Archive ────────────────────────────────────────────────────
+function loadArchive(){try{return JSON.parse(localStorage.getItem(LS_ARCH_KEY)||'[]');}catch(e){return[];}}
+function saveArchive(a){try{localStorage.setItem(LS_ARCH_KEY,JSON.stringify(a));}catch(e){}}
+function archiveKey(y,m){return`${y}-${String(m).padStart(2,'0')}`;}
 
-        function populateDepartmentFilter() {
-            const select = document.getElementById('filter-department');
-            select.innerHTML = '<option value="">All Departments</option>';
-            Array.from(allDepartments).sort().forEach(dept => {
-                const option = document.createElement('option');
-                option.value = dept;
-                option.textContent = dept;
-                select.appendChild(option);
-            });
-        }
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
+function el(id){return document.getElementById(id)||{textContent:'',style:{},innerHTML:''};}
+function getMonthDates(y,m){const d=[],x=new Date(y,m-1,1);while(x.getMonth()===m-1){d.push(new Date(x));x.setDate(x.getDate()+1);}return d;}
+function fmtDate(d){return`${DN[d.getDay()]} ${d.getDate()}-${MN[d.getMonth()]}-${String(d.getFullYear()).slice(2)}`;}
+function idLo(id){return String(id||'').toLowerCase().trim();}
+function empById(id){
+  const lo=idLo(id);
+  return state.employees.find(e=>idLo(e.id)===lo)
+      || state.uploadedEmployees.find(e=>idLo(e.id)===lo)
+      || null;
+}
+function getDeptShifts(d){
+  const c=DEPT_CONFIGS.find(x=>x.dept.toLowerCase()===d.toLowerCase());
+  if(c) return c.shifts;
+  if(/SAMB/i.test(d)) return['E','L'];
+  if(/TA-T/i.test(d)) return['E1','L1','L2','N1'];
+  if(/GSM/i.test(d))  return['E','L'];
+  if(/\bSA\b/i.test(d)) return['E','L'];
+  return['E','L','N'];
+}
+function getDeptLine(d){return /L46|L4\//i.test(d)?'L46':/L5/i.test(d)?'L5':/L3/i.test(d)?'L3':'UNKNOWN';}
+function getDeptPosition(d){
+  if(/SAMB/i.test(d)) return'SAMB';
+  if(/LSS|\/SS/i.test(d)) return'SS';
+  if(/\bSA\b/i.test(d)&&!/SAMB/i.test(d)) return'SA';
+  return'OTHER';
+}
 
-        function updateRosterView() {
-            const currentEmployeeId = document.getElementById('current-employee-id').value;
-            const deptFilter = document.getElementById('filter-department').value;
-            const typeFilter = document.getElementById('filter-type').value;
-            
-            const currentEmployee = employees.find(e => e.id == currentEmployeeId);
-            
-            const infoDiv = document.getElementById('current-employee-info');
-            if (currentEmployee) {
-                const rank = employees.findIndex(e => e.id == currentEmployeeId) + 1;
-                infoDiv.innerHTML = `
-                    <div class="info-message">
-                        <strong>Logged in as:</strong> ${currentEmployee.name} (ID: ${currentEmployee.id}) | 
-                        <strong>Department:</strong> ${currentEmployee.department} | 
-                        <strong>Seniority Rank:</strong> #${rank}
-                    </div>
-                `;
-            } else if (currentEmployeeId) {
-                infoDiv.innerHTML = `
-                    <div class="error-message">
-                        ❌ Employee ID not found. Please enter a valid ID.
-                    </div>
-                `;
-            } else {
-                infoDiv.innerHTML = `
-                    <div class="warning-message">
-                        ⚠️ Please enter your Employee ID to start bidding.
-                    </div>
-                `;
-            }
-            
-            // Show my bids section
-            if (currentEmployee) {
-                const myBidsArray = rosters.filter(r => 
-                    r.bids.some(b => b.employeeId == currentEmployee.id)
-                );
-                
-                if (myBidsArray.length > 0) {
-                    document.getElementById('my-bids-container').innerHTML = `
-                        <div class="my-bids-section">
-                            <h3>✓ Your Bids (${myBidsArray.length})</h3>
-                            ${myBidsArray.map(r => 
-                                `<span class="bid-item">Roster #${r.rosterNumber} (${r.department})</span>`
-                            ).join('')}
-                        </div>
-                    `;
-                } else {
-                    document.getElementById('my-bids-container').innerHTML = '';
-                }
-            } else {
-                document.getElementById('my-bids-container').innerHTML = '';
-            }
-            
-            renderRosterGrid(currentEmployee, deptFilter, typeFilter);
-        }
+// ═══════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════
+function doLogin(role){
+  if(role==='planner'){
+    const u=el('planner-user').value.trim(), p=el('planner-pass').value;
+    const err=el('planner-err');
+    if(u!==PLANNER_CREDS.user||p!==PLANNER_CREDS.pass){err.textContent='❌ Invalid credentials';return;}
+    err.textContent='';
+    currentUser={role:'planner',empId:null,empName:'Planner'};
+    showApp();
+  } else {
+    const eid=el('staff-empid').value.trim(), p=el('staff-pass').value;
+    const err=el('staff-err');
+    if(!eid){err.textContent='❌ Enter your Employee ID';return;}
+    if(p!==STAFF_PASS){err.textContent='❌ Incorrect password';return;}
+    err.textContent='';
+    const emp=empById(eid);
+    currentUser={role:'staff', empId:eid, empName:emp?emp.name:eid};
+    showApp();
+  }
+}
 
-        function renderRosterGrid(currentEmployee, deptFilter, typeFilter) {
-            const grid = document.getElementById('roster-grid');
-            
-            if (rosters.length === 0) {
-                grid.innerHTML = `
-                    <div class="empty-state" style="grid-column: 1/-1;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
-                        <h3>No rosters available</h3>
-                        <p>Upload a roster file in the "Upload Roster" tab</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Filter rosters
-            let filteredRosters = rosters;
-            if (deptFilter) {
-                filteredRosters = filteredRosters.filter(r => r.department === deptFilter);
-            }
-            if (typeFilter === 'my-dept' && currentEmployee) {
-                filteredRosters = filteredRosters.filter(r => r.department === currentEmployee.department);
-            }
-            if (typeFilter === 'my-bids' && currentEmployee) {
-                filteredRosters = filteredRosters.filter(r => 
-                    r.bids.some(b => b.employeeId == currentEmployee.id)
-                );
-            }
-            
-            grid.innerHTML = '';
-            
-            filteredRosters.forEach(roster => {
-                const canBid = currentEmployee && roster.department === currentEmployee.department;
-                const hasBid = currentEmployee && roster.bids.some(b => b.employeeId == currentEmployee.id);
-                
-                const card = document.createElement('div');
-                card.className = 'roster-card';
-                if (!canBid && currentEmployee) {
-                    card.classList.add('cannot-bid');
-                }
-                if (hasBid) {
-                    card.classList.add('selected');
-                }
-                
-                // Only make clickable if can bid
-                if (canBid) {
-                    card.onclick = () => toggleBid(roster.rosterNumber);
-                }
-                
-                card.innerHTML = `
-                    <div class="roster-header">
-                        <div class="roster-number">Roster #${roster.rosterNumber}</div>
-                        <div class="roster-department">${roster.department}</div>
-                    </div>
-                    
-                    <div style="margin-bottom: 8px;">
-                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
-                            ${roster.shifts.slice(0, 7).map(shift => 
-                                `<div class="shift-day-header">${shift.shortDate}</div>`
-                            ).join('')}
-                        </div>
-                        <div class="shifts-container">
-                            ${roster.shifts.slice(0, 7).map(shift => 
-                                `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
-                            ).join('')}
-                        </div>
-                    </div>
-                    
-                    ${roster.shifts.length > 7 ? `
-                        <div style="margin-bottom: 8px;">
-                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
-                                ${roster.shifts.slice(7, 14).map(shift => 
-                                    `<div class="shift-day-header">${shift.shortDate}</div>`
-                                ).join('')}
-                            </div>
-                            <div class="shifts-container">
-                                ${roster.shifts.slice(7, 14).map(shift => 
-                                    `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
-                                ).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    ${roster.shifts.length > 14 ? `
-                        <div style="margin-bottom: 8px;">
-                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
-                                ${roster.shifts.slice(14, 21).map(shift => 
-                                    `<div class="shift-day-header">${shift.shortDate}</div>`
-                                ).join('')}
-                            </div>
-                            <div class="shifts-container">
-                                ${roster.shifts.slice(14, 21).map(shift => 
-                                    `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
-                                ).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    ${roster.shifts.length > 21 ? `
-                        <div style="margin-bottom: 8px;">
-                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px;">
-                                ${roster.shifts.slice(21, 28).map(shift => 
-                                    `<div class="shift-day-header">${shift.shortDate}</div>`
-                                ).join('')}
-                            </div>
-                            <div class="shifts-container">
-                                ${roster.shifts.slice(21, 28).map(shift => 
-                                    `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
-                                ).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    ${roster.shifts.length > 28 ? `
-                        <div>
-                            <div style="display: grid; grid-template-columns: repeat(${roster.shifts.length - 28}, 1fr); gap: 4px; margin-bottom: 4px;">
-                                ${roster.shifts.slice(28).map(shift => 
-                                    `<div class="shift-day-header">${shift.shortDate}</div>`
-                                ).join('')}
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(${roster.shifts.length - 28}, 1fr); gap: 4px;">
-                                ${roster.shifts.slice(28).map(shift => 
-                                    `<div class="shift-day ${getShiftClass(shift.code)}">${formatShiftCode(shift.code)}</div>`
-                                ).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="roster-footer">
-                        <div class="bid-status">
-                            ${hasBid ? '✓ You placed a bid' : (canBid ? 'Click to bid' : '❌ Other department')}
-                        </div>
-                        <div class="bid-count">${roster.bids.length} bid(s)</div>
-                    </div>
-                `;
-                
-                grid.appendChild(card);
-            });
-        }
+function showApp(){
+  el('login-screen').style.display='none';
+  el('app').style.display='block';
+  el('user-label').textContent = currentUser.role==='planner'?'🗂️ Planner':`👤 ${currentUser.empId}`;
+  el('user-dot').className = 'user-dot '+currentUser.role;
+  // Show employee count badge if data loaded
+  if(state.uploadedEmployees.length>0){
+    el('hdr-emp-count').textContent=`${state.uploadedEmployees.length} employees`;
+    el('hdr-emp-count').style.display='inline';
+  }
+  renderNav();
+  if(currentUser.role==='planner') buildPlannerPanels();
+  else buildStaffPortal();
+}
 
-        function getShiftClass(code) {
-            if (code === 'OFF') return 'shift-off';
-            if (code === 'VACATION') return 'shift-vacation';
-            if (code === 'TANDEV') return 'shift-tandev';
-            if (code === '-' || code === '' || !code || code === 'EMPTY') return 'shift-empty';
-            return 'shift-regular';
-        }
+function doLogout(){
+  currentUser=null;
+  el('app').style.display='none';
+  el('login-screen').style.display='flex';
+  el('planner-pass').value=''; el('staff-pass').value='';
+  el('planner-err').textContent=''; el('staff-err').textContent='';
+}
 
-        function formatShiftCode(code) {
-            if (!code || code === 'EMPTY') return '-';
-            if (code === 'VACATION') return 'VAC';
-            if (code === 'TANDEV') return 'TAN';
-            return code;
-        }
+// ═══════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════
+function renderNav(){
+  const s=el('sidebar');
+  if(currentUser.role==='planner'){
+    s.innerHTML=`
+      <div class="sidebar-label">Setup</div>
+      <div class="nav-item" data-panel="upload" onclick="switchPanel('upload')"><span class="nav-icon">📤</span> Upload Employees <span class="nav-badge" id="nav-emp-count">${state.uploadedEmployees.length||0}</span></div>
+      <div class="nav-item" data-panel="generator" onclick="switchPanel('generator')"><span class="nav-icon">⚙️</span> Configure & Generate</div>
+      <div class="sidebar-label">Bidding</div>
+      <div class="nav-item" data-panel="browse" onclick="switchPanel('browse')"><span class="nav-icon">🗂️</span> Browse Rosters <span class="nav-badge" id="nav-rosters-count">${state.rosters.length||0}</span></div>
+      <div class="nav-item" data-panel="process" onclick="switchPanel('process')"><span class="nav-icon">⚖️</span> Process Bids <span class="nav-badge" id="nav-bids-count">${state.rosters.reduce((a,r)=>a+r.bids.length,0)}</span></div>
+      <div class="nav-item" data-panel="results" onclick="switchPanel('results')"><span class="nav-icon">🏆</span> Results</div>
+      <div class="sidebar-label">Reports</div>
+      <div class="nav-item" data-panel="summary" onclick="switchPanel('summary')"><span class="nav-icon">📊</span> Summary</div>
+      <div class="sidebar-label">Archive</div>
+      <div class="nav-item" data-panel="archive" onclick="switchPanel('archive')"><span class="nav-icon">🗄️</span> Month Archive <span class="nav-badge warn" id="nav-archive-count">${loadArchive().length}</span></div>`;
+  } else {
+    s.innerHTML=`
+      <div class="sidebar-label">My Portal</div>
+      <div class="nav-item" data-panel="staff-bid" onclick="switchPanel('staff-bid')"><span class="nav-icon">🗂️</span> Browse & Bid</div>
+      <div class="nav-item" data-panel="staff-results" onclick="switchPanel('staff-results')"><span class="nav-icon">🏆</span> My Results</div>`;
+  }
+}
 
-        function toggleBid(rosterNumber) {
-            const currentEmployeeId = document.getElementById('current-employee-id').value;
-            const currentEmployee = employees.find(e => e.id == currentEmployeeId);
-            
-            if (!currentEmployee) {
-                alert('Please enter your Employee ID first');
-                return;
-            }
-            
-            const roster = rosters.find(r => r.rosterNumber === rosterNumber);
-            if (!roster) return;
-            
-            // Check if can bid (same department)
-            if (roster.department !== currentEmployee.department) {
-                alert('You can only bid on rosters from your own department');
-                return;
-            }
-            
-            // Check if already bid
-            const bidIndex = roster.bids.findIndex(b => b.employeeId == currentEmployee.id);
-            
-            if (bidIndex >= 0) {
-                // Remove bid
-                roster.bids.splice(bidIndex, 1);
-            } else {
-                // Add bid
-                roster.bids.push({
-                    employeeId: currentEmployee.id,
-                    employeeName: currentEmployee.name,
-                    seniority: currentEmployee.seniority,
-                    department: currentEmployee.department
-                });
-            }
-            
-            // Sort bids by seniority
-            roster.bids.sort((a, b) => a.seniority - b.seniority);
-            
-            updateRosterView();
-            updateProcessTab();
-        }
-
-        function updateProcessTab() {
-            const totalRosters = rosters.length;
-            const rostersWithBids = rosters.filter(r => r.bids.length > 0).length;
-            const totalBids = rosters.reduce((sum, r) => sum + r.bids.length, 0);
-            const uniqueBidders = new Set();
-            rosters.forEach(r => r.bids.forEach(b => uniqueBidders.add(b.employeeId)));
-            
-            document.getElementById('process-total-rosters').textContent = totalRosters;
-            document.getElementById('process-rosters-with-bids').textContent = rostersWithBids;
-            document.getElementById('process-total-bids').textContent = totalBids;
-            document.getElementById('process-unique-bidders').textContent = uniqueBidders.size;
-            
-            // Update review table
-            const tbody = document.getElementById('process-tbody');
-            tbody.innerHTML = '';
-            
-            const rostersWithBidsOnly = rosters.filter(r => r.bids.length > 0);
-            
-            if (rostersWithBidsOnly.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 24px; color: #64748b;">No bids placed yet</td></tr>';
-                return;
-            }
-            
-            rostersWithBidsOnly.forEach(roster => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>Roster #${roster.rosterNumber}</strong></td>
-                    <td>${roster.department}</td>
-                    <td>
-                        ${roster.bids.map((b, i) => {
-                            const rank = employees.findIndex(e => e.id == b.employeeId) + 1;
-                            return `<span style="display: inline-block; margin: 2px 4px; padding: 4px 8px; background: ${i === 0 ? '#d1fae5' : '#f1f5f9'}; border-radius: 4px; font-size: 12px;">
-                                ${i === 0 ? '🏆 ' : ''}${b.employeeName} (ID: ${b.employeeId}, Rank: #${rank})
-                            </span>`;
-                        }).join('')}
-                    </td>
-                    <td><strong>${roster.bids.length}</strong></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function processAllBids() {
-            console.log('Process All Bids clicked');
-            
-            const rostersWithBids = rosters.filter(r => r.bids.length > 0);
-            
-            console.log('Rosters with bids:', rostersWithBids.length);
-            
-            if (rostersWithBids.length === 0) {
-                alert('No bids to process. Employees need to place bids first.');
-                return;
-            }
-            
-            // Skip confirmation and process directly
-            console.log('Starting to process bids immediately...');
-            
-            const resultDiv = document.getElementById('process-result');
-            if (resultDiv) {
-                resultDiv.innerHTML = '<div class="warning-message">⏳ Processing bids...</div>';
-            }
-            
-            processedResults = [];
-            let assignedCount = 0;
-            const assignedEmployees = new Set();
-            
-            // Sort rosters by number of bids (fewer bids first)
-            const sortedRosters = [...rostersWithBids].sort((a, b) => a.bids.length - b.bids.length);
-            
-            console.log('Processing', sortedRosters.length, 'rosters');
-            
-            // Process each roster with bids
-            sortedRosters.forEach(roster => {
-                console.log(`Processing Roster #${roster.rosterNumber}, bids:`, roster.bids.length);
-                
-                // Find the most senior bidder who hasn't been assigned a roster yet
-                let winner = null;
-                for (let i = 0; i < roster.bids.length; i++) {
-                    const bid = roster.bids[i];
-                    console.log(`  Checking bidder: ${bid.employeeName} (ID: ${bid.employeeId}), already assigned:`, assignedEmployees.has(bid.employeeId));
-                    
-                    if (!assignedEmployees.has(bid.employeeId)) {
-                        winner = bid;
-                        console.log(`  ✓ Winner found: ${winner.employeeName}`);
-                        break;
-                    }
-                }
-                
-                if (winner) {
-                    roster.assignedTo = winner;
-                    roster.status = 'assigned';
-                    assignedEmployees.add(winner.employeeId);
-                    assignedCount++;
-                    
-                    console.log(`✓ Roster #${roster.rosterNumber} assigned to ${winner.employeeName} (ID: ${winner.employeeId})`);
-                    
-                    processedResults.push({
-                        roster: roster,
-                        winner: winner,
-                        allBidders: [...roster.bids]
-                    });
-                } else {
-                    console.log(`✗ No available bidders for Roster #${roster.rosterNumber} (all bidders already won a roster)`);
-                }
-            });
-            
-            console.log('=== PROCESSING COMPLETE ===');
-            console.log('Total assigned:', assignedCount);
-            console.log('Employees who won rosters:', Array.from(assignedEmployees));
-            console.log('Processed results count:', processedResults.length);
-            
-            if (resultDiv) {
-                resultDiv.innerHTML = `
-                    <div class="success-message">
-                        ✅ <strong>Processing Complete!</strong><br><br>
-                        📊 Assigned <strong>${assignedCount}</strong> rosters to <strong>${assignedEmployees.size}</strong> employees<br>
-                        ⚖️ Rule applied: Each employee wins maximum 1 roster<br>
-                        🏆 Assignments based on seniority (lower ID = higher priority)<br><br>
-                        👉 Go to "View Results" tab to see detailed assignments
-                    </div>
-                `;
-            }
-            
-            console.log('Calling renderResultsTab...');
-            renderResultsTab();
-            
-            console.log('Calling updateSummary...');
-            updateSummary();
-            
-            console.log('All done!');
-            alert(`✅ Success!\n\nAssigned ${assignedCount} rosters to ${assignedEmployees.size} employees.\n\nEach employee won maximum 1 roster.\n\nCheck the "View Results" tab!`);
-        }
-
-        function renderResultsTab() {
-            const tbody = document.getElementById('results-tbody');
-            tbody.innerHTML = '';
-            
-            if (processedResults.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 32px; color: #64748b;">No results yet. Process bids in the "Process Bids" tab.</td></tr>';
-                return;
-            }
-            
-            processedResults.forEach(result => {
-                const seniorityRank = employees.findIndex(e => e.id == result.winner.employeeId) + 1;
-                const row = document.createElement('tr');
-                row.style.background = '#f0fdf4';
-                row.innerHTML = `
-                    <td><strong>Roster #${result.roster.rosterNumber}</strong></td>
-                    <td>${result.roster.department}</td>
-                    <td><strong style="color: #059669;">${result.winner.employeeName} (ID: ${result.winner.employeeId})</strong></td>
-                    <td><strong>#${seniorityRank}</strong></td>
-                    <td style="font-size: 12px;">
-                        ${result.allBidders.map((b, i) => {
-                            const rank = employees.findIndex(e => e.id == b.employeeId) + 1;
-                            return `${i === 0 ? '🏆 ' : ''}${b.employeeName} (ID: ${b.employeeId}, Rank: #${rank})`;
-                        }).join(' | ')}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function updateSummary() {
-            const totalRosters = rosters.length;
-            const assignedRosters = rosters.filter(r => r.status === 'assigned').length;
-            const openRosters = totalRosters - assignedRosters;
-            const totalBids = rosters.reduce((sum, r) => sum + r.bids.length, 0);
-            
-            document.getElementById('summary-total').textContent = totalRosters;
-            document.getElementById('summary-assigned').textContent = assignedRosters;
-            document.getElementById('summary-open').textContent = openRosters;
-            document.getElementById('summary-bids').textContent = totalBids;
-            
-            // Employee statistics
-            const empStats = {};
-            
-            rosters.forEach(roster => {
-                roster.bids.forEach(bid => {
-                    if (!empStats[bid.employeeId]) {
-                        empStats[bid.employeeId] = {
-                            name: bid.employeeName,
-                            department: bid.department,
-                            bidsPlaced: 0,
-                            rostersWon: 0
-                        };
-                    }
-                    empStats[bid.employeeId].bidsPlaced++;
-                });
-                
-                if (roster.assignedTo) {
-                    if (!empStats[roster.assignedTo.employeeId]) {
-                        empStats[roster.assignedTo.employeeId] = {
-                            name: roster.assignedTo.employeeName,
-                            department: roster.assignedTo.department,
-                            bidsPlaced: 0,
-                            rostersWon: 0
-                        };
-                    }
-                    empStats[roster.assignedTo.employeeId].rostersWon++;
-                }
-            });
-            
-            const tbody = document.getElementById('summary-tbody');
-            tbody.innerHTML = '';
-            
-            if (Object.keys(empStats).length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: #64748b;">No bidding activity yet</td></tr>';
-                return;
-            }
-            
-            Object.keys(empStats).sort((a, b) => a - b).forEach(empId => {
-                const stats = empStats[empId];
-                const successRate = stats.bidsPlaced > 0 ? ((stats.rostersWon / stats.bidsPlaced) * 100).toFixed(0) : 0;
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td><strong>${empId}</strong></td>
-                    <td>${stats.name}</td>
-                    <td>${stats.department}</td>
-                    <td>${stats.bidsPlaced}</td>
-                    <td><strong style="color: #059669;">${stats.rostersWon}</strong></td>
-                    <td><strong>${successRate}%</strong></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function exportResults() {
-            if (processedResults.length === 0) {
-                alert('No results to export. Process bids first.');
-                return;
-            }
-            
-            let csv = 'Roster Number,Department,Winner Name,Winner ID,Winner Seniority Rank,All Bidders\n';
-            processedResults.forEach(result => {
-                const seniorityRank = employees.findIndex(e => e.id == result.winner.employeeId) + 1;
-                csv += `${result.roster.rosterNumber},${result.roster.department},${result.winner.employeeName},${result.winner.employeeId},#${seniorityRank},"${result.allBidders.map(b => `${b.employeeName} (ID: ${b.employeeId})`).join(', ')}"\n`;
-            });
-            
-            downloadCSV(csv, 'roster-assignments-results.csv');
-        }
-
-        function downloadCSV(csv, filename) {
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        function clearAllBids() {
-            if (!confirm('Clear all bids? This will remove all employee bids and reset assignments.')) {
-                return;
-            }
-            
-            rosters.forEach(roster => {
-                roster.bids = [];
-                roster.assignedTo = null;
-                roster.status = 'available';
-            });
-            
-            processedResults = [];
-            myBids.clear();
-            
-            updateRosterView();
-            updateProcessTab();
-            renderResultsTab();
-            updateSummary();
-            
-            document.getElementById('process-result').innerHTML = '<div class="success-message">✅ All bids cleared successfully.</div>';
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach((tab, index) => {
-                if (tab.textContent.toLowerCase().includes(tabName)) {
-                    tab.classList.add('active');
-                }
-            });
-            
-            document.getElementById(tabName + '-tab').classList.add('active');
-            
-            if (tabName === 'browse') {
-                updateRosterView();
-            } else if (tabName === 'process') {
-                updateProcessTab();
-            } else if (tabName === 'results') {
-                renderResultsTab();
-            } else if (tabName === 'summary') {
-                updateSummary();
-            }
-        }
-        
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set up tab click handlers properly
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabText = this.textContent.toLowerCase();
-                    if (tabText.includes('upload')) switchTabFixed('upload');
-                    else if (tabText.includes('browse')) switchTabFixed('browse');
-                    else if (tabText.includes('process')) switchTabFixed('process');
-                    else if (tabText.includes('results')) switchTabFixed('results');
-                    else if (tabText.includes('summary')) switchTabFixed('summary');
-                });
-            });
+// ═══════════════════════════════════════════════════════════════
+// UPLOAD
+// ═══════════════════════════════════════════════════════════════
+function handleUploadDrop(e){
+  e.preventDefault();
+  el('upload-zone').classList.remove('drag-over');
+  const f=e.dataTransfer.files[0]; if(f) handleEmpFile(f);
+}
+function handleEmpFile(file){
+  if(!file) return;
+  const rd=el('upload-result');
+  rd.innerHTML='<div class="alert alert-info">📂 Reading file…</div>';
+  el('col-mapper').style.display='none';
+  el('emp-preview').style.display='none';
+  const isCSV=file.name.toLowerCase().endsWith('.csv');
+  const reader=new FileReader();
+  reader.onerror=()=>{rd.innerHTML='<div class="alert alert-danger">❌ Could not read file.</div>';};
+  reader.onload=function(ev){
+    try{
+      let rows;
+      if(isCSV){rows=parseCSVRobust(ev.target.result);}
+      else{
+        const u8=new Uint8Array(ev.target.result);
+        let wb=null;
+        for(const fn of[
+          ()=>XLSX.read(u8,{type:'array',raw:true}),
+          ()=>XLSX.read(u8,{type:'array',raw:false}),
+          ()=>XLSX.read(u8,{type:'array'}),
+        ]){try{wb=fn();if(wb)break;}catch(x){}}
+        if(!wb) throw new Error('Cannot parse file. Try saving as CSV.');
+        let best=[];
+        wb.SheetNames.forEach(sn=>{
+          try{
+            const ws=wb.Sheets[sn];if(!ws||!ws['!ref'])return;
+            const r=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false,blankrows:false});
+            const ne=r.filter(row=>row.some(c=>String(c||'').trim()));
+            if(ne.length>best.length) best=ne;
+          }catch(x){}
         });
-        
-        function switchTabFixed(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => {
-                if (tab.textContent.toLowerCase().includes(tabName)) {
-                    tab.classList.add('active');
-                }
-            });
-            
-            document.getElementById(tabName + '-tab').classList.add('active');
-            
-            if (tabName === 'browse') {
-                updateRosterView();
-            } else if (tabName === 'process') {
-                updateProcessTab();
-            } else if (tabName === 'results') {
-                renderResultsTab();
-            } else if (tabName === 'summary') {
-                updateSummary();
-            }
+        rows=best;
+      }
+      rows=(rows||[]).filter(r=>r&&r.some(c=>String(c||'').trim()));
+      if(rows.length<2){rd.innerHTML=`<div class="alert alert-danger">❌ File empty (${rows.length} rows).</div>`;return;}
+      _rawFileRows=rows;
+      rd.innerHTML=`<div class="alert alert-success">✅ File read: <strong>${rows.length-1}</strong> rows · <strong>${rows[0].length}</strong> columns</div>`;
+      const am=autoDetectCols(rows[0]);
+      populateMapper(rows,am);
+      if(am.id>=0&&am.name>=0&&am.dept>=0)
+        rd.innerHTML+=`<div class="alert alert-info" style="margin-top:8px">🔍 Columns auto-detected — review then click <strong>Apply Mapping</strong>.</div>`;
+    }catch(err){rd.innerHTML=`<div class="alert alert-danger">❌ ${err.message}</div>`;}
+  };
+  if(isCSV) reader.readAsText(file,'UTF-8'); else reader.readAsArrayBuffer(file);
+}
+function parseCSVRobust(text){
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const rows=[];let cur=[],cell='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(c==='"'){if(inQ&&text[i+1]==='"'){cell+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){cur.push(cell.trim());cell='';}
+    else if(c==='\n'&&!inQ){cur.push(cell.trim());rows.push(cur);cur=[];cell='';}
+    else cell+=c;
+  }
+  if(cell||cur.length){cur.push(cell.trim());rows.push(cur);}
+  return rows;
+}
+function autoDetectCols(h){
+  const n=s=>String(s||'').toLowerCase().replace(/[\s_\-\.\/\(\)#]/g,'');
+  const hh=h.map(n), m={id:-1,name:-1,dept:-1,pos:-1,line:-1,bid:-1};
+  const kw={
+    id:['employeeid','empid','staffid','employeenumber','empno','staffno','personnelid','id','number','no','serial'],
+    name:['employeename','fullname','staffname','empname','name','employee'],
+    dept:['department','dept','section','group','deptname','division'],
+    pos:['position','role','jobtitle','pos','rank'],
+    line:['line','lineno','linename','linecode'],
+    bid:['participatesinbidding','bidding','participates','bid','eligible'],
+  };
+  Object.entries(kw).forEach(([f,keys])=>{
+    for(const k of keys){const i=hh.findIndex(c=>c===k||c.startsWith(k));if(i>=0){m[f]=i;break;}}
+  });
+  return m;
+}
+function populateMapper(rows,am){
+  const headers=rows[0];
+  el('raw-headers-preview').innerHTML='Columns: '+headers.map((h,i)=>`<span style="color:var(--accent)">[${i}]</span> ${h}`).join(' · ');
+  ['map-id','map-name','map-dept','map-pos','map-line','map-bid'].forEach((sid,fi)=>{
+    const fkeys=['id','name','dept','pos','line','bid'];
+    const optionals=['map-pos','map-line','map-bid'];
+    const sel=el(sid);
+    sel.innerHTML=optionals.includes(sid)?'<option value="-1">— skip —</option>':'<option value="">— select —</option>';
+    headers.forEach((h,idx)=>{const o=document.createElement('option');o.value=idx;o.textContent=`[${idx}] ${h}`;sel.appendChild(o);});
+    if(am[fkeys[fi]]>=0) sel.value=am[fkeys[fi]];
+  });
+  const tbl=el('raw-preview-table');
+  tbl.innerHTML='<thead><tr>'+headers.map((h,i)=>`<th>[${i}] ${h}</th>`).join('')+'</tr></thead>';
+  const tb=document.createElement('tbody');
+  rows.slice(1,6).forEach(row=>{const tr=document.createElement('tr');tr.innerHTML=row.map(c=>`<td>${c??''}</td>`).join('');tb.appendChild(tr);});
+  tbl.appendChild(tb);
+  el('col-mapper').style.display='block';
+  el('mapper-status').textContent=`Auto-detected: ${Object.values(am).filter(v=>v>=0).length}/6 fields`;
+}
+function applyColumnMapping(){
+  const gv=id=>{const s=el(id);if(!s||s.value===''||s.value===null)return-1;const v=parseInt(s.value);return isNaN(v)?-1:v;};
+  const idC=gv('map-id'),nmC=gv('map-name'),dpC=gv('map-dept'),psC=gv('map-pos'),lnC=gv('map-line'),bdC=gv('map-bid');
+  const st=el('mapper-status');
+  if(idC<0){st.textContent='❌ Employee ID required';st.style.color='var(--danger)';return;}
+  if(nmC<0){st.textContent='❌ Name required';st.style.color='var(--danger)';return;}
+  if(dpC<0){st.textContent='❌ Department required';st.style.color='var(--danger)';return;}
+  const employees=[]; let skipped=0;
+  for(let i=1;i<_rawFileRows.length;i++){
+    const row=_rawFileRows[i]; if(!row) continue;
+    const ri=row[idC],rn=row[nmC],rd=row[dpC];
+    if(!ri||!String(ri).trim()||!rn||!String(rn).trim()||!rd||!String(rd).trim()){skipped++;continue;}
+    const dept=String(rd).trim();
+    employees.push({
+      id:        String(ri).trim(),
+      name:      String(rn).trim(),
+      department:dept,
+      position:  psC>=0&&row[psC]!=null ? String(row[psC]).trim() : getDeptPosition(dept),
+      line:      lnC>=0&&row[lnC]!=null ? String(row[lnC]).trim() : getDeptLine(dept),
+      participatesInBidding: bdC>=0&&row[bdC]!=null
+        ? !['no','n','false','0','لا'].includes(String(row[bdC]).trim().toLowerCase())
+        : true,
+      seniority: i,
+    });
+  }
+  if(!employees.length){st.textContent='❌ No valid rows';st.style.color='var(--danger)';return;}
+  employees.forEach(e=>{const n=parseInt(String(e.id).replace(/\D/g,''));if(!isNaN(n)&&n>0)e.seniority=n;});
+  employees.sort((a,b)=>a.seniority-b.seniority);
+  employees.forEach((e,i)=>e.seniorityRank=i+1);
+  state.uploadedEmployees=employees;
+  saveState(); // ← PERSIST immediately after upload
+  const nb=employees.filter(e=>!e.participatesInBidding).length;
+  const depts=[...new Set(employees.map(e=>e.department))].length;
+  el('upload-result').innerHTML=
+    `<div class="alert alert-success">✅ <strong>${employees.length}</strong> employees loaded · <strong>${depts}</strong> departments · Non-bidders: <strong>${nb}</strong>${skipped?` · Skipped: ${skipped}`:''}<br><small style="opacity:0.7">✔ Saved — staff can now log in and see rosters after generation.</small></div>`;
+  renderEmpPreview(employees);
+  const nc=el('nav-emp-count');if(nc)nc.textContent=employees.length;
+  el('hdr-emp-count').textContent=`${employees.length} employees`;
+  el('hdr-emp-count').style.display='inline';
+  el('col-mapper').style.display='none';
+  st.textContent=`✅ ${employees.length} loaded`; st.style.color='var(--accent3)';
+}
+function renderEmpPreview(employees){
+  el('emp-preview').style.display='block';
+  el('emp-preview-count').textContent=`(${employees.length})`;
+  const tbody=el('emp-preview-tbody');
+  tbody.innerHTML='';
+  employees.slice(0,300).forEach((e,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--text3)">${i+1}</td>
+      <td><strong style="color:var(--accent);font-family:'DM Mono',monospace">${e.id}</strong></td>
+      <td>${e.name}</td><td>${e.department}</td><td>${e.position}</td><td>${e.line}</td>
+      <td>${e.participatesInBidding?'<span style="color:var(--accent3)">✅ Yes</span>':'<span style="color:var(--warn)">🚫 No</span>'}</td>`;
+    tbody.appendChild(tr);
+  });
+  if(employees.length>300){const tr=document.createElement('tr');tr.innerHTML=`<td colspan="7" style="text-align:center;color:var(--text3);padding:10px">…and ${employees.length-300} more</td>`;tbody.appendChild(tr);}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SHIFT GENERATION
+// ═══════════════════════════════════════════════════════════════
+function buildMasterCycle(shifts){
+  const block=['WORK','WORK','WORK','WORK','WORK','OFF','OFF'],cycle=[];
+  shifts.forEach(s=>block.forEach(t=>cycle.push({shift:s,dayType:t})));
+  return cycle;
+}
+function generateBlockPattern(empId,localIdx,totalDays,shifts,total,carryMap){
+  const cycle=buildMasterCycle(shifts),cLen=cycle.length;
+  const offset=carryMap[empId]!==undefined?carryMap[empId]
+    :(total>0?Math.floor((localIdx*cLen)/total)%cLen:0);
+  const pattern=[];
+  for(let d=0;d<totalDays;d++) pattern.push(cycle[(d+offset)%cLen].dayType==='OFF'?'OFF':cycle[(d+offset)%cLen].shift);
+  return{pattern,offset};
+}
+function buildCarryMap(){
+  const arch=loadArchive();
+  const y=state.year, m=state.month;
+  let py=y,pm=m-1; if(pm===0){pm=12;py=y-1;}
+  const entry=arch.find(a=>a.key===archiveKey(py,pm));
+  const map={};
+  if(entry){
+    Object.entries(entry.rostersByEmpId||{}).forEach(([empId,pattern])=>{
+      const dept=entry.deptByEmpId[empId];
+      const shifts=getDeptShifts(dept||'');
+      const cycle=buildMasterCycle(shifts),cLen=cycle.length;
+      const so=(entry.cycleOffsetByEmpId||{})[empId]||0;
+      map[empId]=((pattern.length-1+so)%cLen+1)%cLen;
+    });
+  }
+  return{map,entry};
+}
+function checkCarryOver(){
+  const{map,entry}=buildCarryMap();
+  const banner=el('carry-banner'), hdr=el('hdr-prev-month');
+  if(entry){
+    banner.style.display='flex';
+    el('carry-banner-detail').textContent=`Found ${MN[entry.month-1]} ${entry.year} — ${Object.keys(entry.rostersByEmpId||{}).length} employees carry over.`;
+    hdr.style.display='inline';
+  } else {
+    banner.style.display='none'; hdr.style.display='none';
+  }
+}
+function generateRosters(){
+  const year=parseInt(el('gen-year').value);
+  const month=parseInt(el('gen-month').value);
+  const vacPct=parseInt(el('gen-vac').value)/100;
+  state.year=year; state.month=month;
+  state.monthDates=getMonthDates(year,month);
+  state.rosters=[]; state.processedResults=[]; state.employees=[];
+  const logEl=el('gen-log');
+  logEl.style.display='block'; logEl.textContent='';
+  const log=m=>{logEl.textContent+=`> ${m}\n`;logEl.scrollTop=logEl.scrollHeight;};
+  log(`Generating ${MN[month-1]} ${year} — ${state.monthDates.length} days`);
+  const{map:carryMap}=buildCarryMap();
+  let rn=1,totalVac=0,nonBidCount=0;
+  const archR={},archD={},archO={};
+
+  if(state.uploadedEmployees.length>0){
+    log(`Upload mode: ${state.uploadedEmployees.length} employees`);
+    const byDept={};
+    state.uploadedEmployees.forEach(e=>{(byDept[e.department]=byDept[e.department]||[]).push(e);});
+    Object.entries(byDept).forEach(([dept,emps])=>{
+      const shifts=getDeptShifts(dept);
+      log(`${dept}: ${emps.length} emps, shifts=[${shifts}]`);
+      emps.forEach((emp,li)=>{
+        state.employees.push({...emp});
+        if(!emp.participatesInBidding) nonBidCount++;
+        const{pattern,offset}=generateBlockPattern(emp.id,li,state.monthDates.length,shifts,emps.length,carryMap);
+        archR[emp.id]=pattern; archD[emp.id]=dept; archO[emp.id]=offset;
+        state.rosters.push({
+          rosterNumber:rn++, department:dept,
+          line:emp.line||getDeptLine(dept), position:emp.position||getDeptPosition(dept),
+          shifts:state.monthDates.map((d,i)=>({date:fmtDate(d),code:pattern[i],carryOver:false})),
+          bids:[], assignedTo:null, status:'available', originalEmpId:emp.id,
+        });
+      });
+    });
+  } else {
+    log('Headcount mode');
+    let eid=1;
+    DEPT_CONFIGS.filter(c=>state.deptIncludes[c.dept]).forEach(cfg=>{
+      const vacSet=new Set(),vc=Math.floor(cfg.headcount*vacPct);
+      while(vacSet.size<vc) vacSet.add(Math.floor(Math.random()*cfg.headcount));
+      totalVac+=vc;
+      for(let i=0;i<cfg.headcount;i++){
+        const id=`EMP${String(eid).padStart(4,'0')}`;
+        const emp={id,name:`${cfg.dept} Emp ${i+1}`,department:cfg.dept,line:cfg.line,
+          position:cfg.position,seniority:eid,seniorityRank:eid,participatesInBidding:true};
+        state.employees.push(emp); eid++;
+        if(vacSet.has(i)){
+          state.rosters.push({rosterNumber:rn++,department:cfg.dept,line:cfg.line,position:cfg.position,
+            shifts:state.monthDates.map(d=>({date:fmtDate(d),code:'VACATION',carryOver:false})),
+            bids:[],assignedTo:null,status:'vacation',originalEmpId:id});
+        } else {
+          const ai=i-[...vacSet].filter(v=>v<i).length;
+          const{pattern,offset}=generateBlockPattern(id,ai,state.monthDates.length,cfg.shifts,cfg.headcount-vc,carryMap);
+          archR[id]=pattern;archD[id]=cfg.dept;archO[id]=offset;
+          state.rosters.push({rosterNumber:rn++,department:cfg.dept,line:cfg.line,position:cfg.position,
+            shifts:state.monthDates.map((d,i)=>({date:fmtDate(d),code:pattern[i],carryOver:false})),
+            bids:[],assignedTo:null,status:'available',originalEmpId:id});
         }
-    </script>
+      }
+    });
+  }
+
+  state._pendingArchive={key:archiveKey(year,month),year,month,
+    rostersByEmpId:archR,deptByEmpId:archD,cycleOffsetByEmpId:archO,generatedAt:new Date().toISOString()};
+  log(`✓ ${state.rosters.length} rosters, ${state.employees.length} employees, ${nonBidCount} non-bidders`);
+  saveState(); // ← PERSIST after generation — staff will now see rosters
+
+  el('gs-rosters').textContent=state.rosters.length;
+  el('gs-emps').textContent=state.employees.length;
+  el('gs-vac').textContent=totalVac||state.rosters.filter(r=>r.status==='vacation').length;
+  el('gs-days').textContent=state.monthDates.length;
+  el('gs-depts').textContent=new Set(state.rosters.map(r=>r.department)).size;
+  el('gs-nonbid').textContent=nonBidCount;
+  el('gen-stats').style.display='block';
+  el('gen-status').textContent=`✓ ${state.rosters.length} rosters generated`;
+  const rc=el('nav-rosters-count');if(rc)rc.textContent=state.rosters.length;
+  populateBrowseFilters(); updateProcessStats(); renderBrowse();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BROWSE (planner)
+// ═══════════════════════════════════════════════════════════════
+function populateBrowseFilters(){
+  const sel=el('bid-dept-filter');if(!sel.innerHTML===undefined)return;
+  sel.innerHTML='<option value="">All Departments</option>';
+  [...new Set(state.rosters.map(r=>r.department))].sort().forEach(d=>{
+    const o=document.createElement('option');o.value=d;o.textContent=d;sel.appendChild(o);
+  });
+}
+function renderBrowse(){
+  const grid=el('browse-grid');if(!grid.innerHTML===undefined)return;
+  const deptF=(el('bid-dept-filter')||{}).value||'';
+  let vis=state.rosters.filter(r=>r.status!=='vacation');
+  if(deptF) vis=vis.filter(r=>r.department===deptF);
+  if(!state.rosters.length){grid.innerHTML=`<div class="alert alert-warn" style="grid-column:1/-1">⚠️ Generate rosters first.</div>`;return;}
+  if(!vis.length){grid.innerHTML=`<div class="alert alert-info" style="grid-column:1/-1">No rosters match filter.</div>`;return;}
+  grid.innerHTML='';
+  vis.forEach(roster=>{
+    const isA=roster.status==='assigned',isR=roster.status==='reward';
+    const card=document.createElement('div');
+    card.className='roster-card'+(isA?' assigned':isR?' reward':'');
+    const strip=roster.shifts.map(s=>{
+      const cls=s.code==='OFF'?'cell-OFF':s.code==='VACATION'?'cell-VAC':`cell-${s.code}`;
+      const lbl=s.code==='VACATION'?'V':s.code==='OFF'?'·':s.code.replace(/\d/g,'');
+      return`<div class="shift-cell ${cls}" title="${s.date}: ${s.code}">${lbl}</div>`;
+    }).join('');
+    card.innerHTML=`
+      <div class="roster-card-header">
+        <div class="roster-num">#${roster.rosterNumber}</div>
+        <div class="roster-dept-badge">${roster.department}</div>
+      </div>
+      <div class="shift-strip">${strip}</div>
+      <div class="roster-card-footer">
+        <span class="bid-label">${isA?`🏆 ${roster.assignedTo?.empName||''}`:isR?`🎁 ${roster.assignedTo?.empName||''}`:`${roster.bids.length} bid(s)`}</span>
+        <span class="bid-count-badge">${roster.bids.length} bid(s)</span>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STAFF — BID PORTAL
+// ═══════════════════════════════════════════════════════════════
+function renderStaffBid(){
+  if(!currentUser||currentUser.role!=='staff') return;
+  const container=el('staff-bid-content');
+  if(!container.innerHTML===undefined) return;
+
+  if(!state.rosters.length){
+    container.innerHTML=`<div class="alert alert-warn" style="margin-top:24px">
+      ⚠️ No rosters available yet. The planner needs to generate rosters first.
+      <br><small style="margin-top:4px;display:block;opacity:0.7">Logged in as: <strong>${currentUser.empId}</strong></small>
+    </div>`;
+    return;
+  }
+  const emp=empById(currentUser.empId);
+  if(!emp){
+    container.innerHTML=`<div class="alert alert-danger" style="margin-top:24px">
+      ❌ Employee ID <strong>${currentUser.empId}</strong> not found in the system.
+      <br><small style="margin-top:4px;display:block;opacity:0.7">Contact your planner. Make sure your ID matches exactly what was uploaded.</small>
+    </div>`;
+    return;
+  }
+
+  const myRosters=state.rosters.filter(r=>r.department===emp.department && r.status!=='vacation');
+  const myBids   =state.rosters.filter(r=>r.bids.some(b=>idLo(b.empId)===idLo(emp.id)));
+  const myWon    =state.rosters.find(r=>r.assignedTo && idLo(r.assignedTo.empId)===idLo(emp.id));
+
+  let html=`<div class="staff-welcome">
+    <div class="staff-avatar">👤</div>
+    <div>
+      <h2>${emp.name}</h2>
+      <p><strong style="color:var(--accent)">${emp.id}</strong> &nbsp;·&nbsp; ${emp.department} &nbsp;·&nbsp; Seniority: <strong>#${emp.seniorityRank}</strong></p>
+      <p style="margin-top:3px;font-size:12px;color:var(--text3)">${MN[state.month-1]} ${state.year} — ${state.monthDates.length} days</p>
+    </div>
+  </div>`;
+
+  if(myWon){
+    const t=myWon.status==='reward'?'🎁 Reward allocation':'🏆 Bid winner';
+    html+=`<div class="alert alert-success">${t} — you are assigned <strong>Roster #${myWon.rosterNumber}</strong></div>`;
+  }
+  if(myBids.length){
+    html+=`<div class="my-bids-panel"><h3>✓ Your Bids (${myBids.length})</h3>
+      ${myBids.map(r=>`<span class="bid-chip">📋 #${r.rosterNumber}</span>`).join('')}
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="clearMyBids()">Clear All</button>
+    </div>`;
+  }
+  html+=`<div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#ff7043"></div>Early</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#42a5f5"></div>Late</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ab47bc"></div>Night</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#607d8b"></div>OFF</div>
+  </div>`;
+  if(!myRosters.length){
+    html+=`<div class="alert alert-warn">No rosters for your department <strong>${emp.department}</strong>. Contact planner.</div>`;
+  } else {
+    html+=`<p style="font-size:13px;color:var(--text2);margin-bottom:12px"><strong>${myRosters.length}</strong> rosters in your department — click to bid or remove bid.</p>`;
+  }
+  html+=`<div class="roster-grid" id="staff-roster-grid"></div>`;
+  container.innerHTML=html;
+
+  const grid=el('staff-roster-grid');
+  myRosters.forEach(roster=>{
+    const hasBid=roster.bids.some(b=>idLo(b.empId)===idLo(emp.id));
+    const locked=roster.status==='assigned'||roster.status==='reward';
+    const card=document.createElement('div');
+    card.className='roster-card'+(hasBid?' selected':'')+(locked?' assigned':'');
+    if(!locked) card.onclick=()=>staffToggleBid(roster.rosterNumber);
+    const strip=roster.shifts.map(s=>{
+      const cls=s.code==='OFF'?'cell-OFF':`cell-${s.code}`;
+      const lbl=s.code==='OFF'?'·':s.code.replace(/\d/g,'');
+      return`<div class="shift-cell ${cls}" title="${s.date}: ${s.code}">${lbl}</div>`;
+    }).join('');
+    card.innerHTML=`
+      <div class="roster-card-header">
+        <div class="roster-num">#${roster.rosterNumber}</div>
+        <div class="roster-dept-badge">${roster.department}</div>
+      </div>
+      <div class="shift-strip">${strip}</div>
+      <div class="roster-card-footer">
+        <span class="bid-label">${hasBid?'✅ Bid placed':locked?'🔒 Assigned':'🖱 Click to bid'}</span>
+        <span class="bid-count-badge">${roster.bids.length} bid(s)</span>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function staffToggleBid(rosterNumber){
+  const emp=empById(currentUser.empId);if(!emp)return;
+  const roster=state.rosters.find(r=>r.rosterNumber===rosterNumber);
+  if(!roster||roster.status==='assigned'||roster.status==='reward') return;
+  const idx=roster.bids.findIndex(b=>idLo(b.empId)===idLo(emp.id));
+  if(idx>=0) roster.bids.splice(idx,1);
+  else roster.bids.push({empId:emp.id,empName:emp.name,seniority:emp.seniorityRank,department:emp.department});
+  roster.bids.sort((a,b)=>a.seniority-b.seniority);
+  saveState(); // ← PERSIST bid
+  renderStaffBid();
+}
+function clearMyBids(){
+  const emp=empById(currentUser.empId);if(!emp)return;
+  state.rosters.forEach(r=>{const i=r.bids.findIndex(b=>idLo(b.empId)===idLo(emp.id));if(i>=0)r.bids.splice(i,1);});
+  saveState();
+  renderStaffBid();
+}
+
+function renderStaffResults(){
+  if(!currentUser||currentUser.role!=='staff') return;
+  const container=el('staff-results-content');
+  const emp=empById(currentUser.empId);
+  if(!emp){container.innerHTML='<div class="alert alert-warn" style="margin-top:24px">Employee not found. Contact your planner.</div>';return;}
+  const won=state.rosters.find(r=>r.assignedTo && idLo(r.assignedTo.empId)===idLo(emp.id));
+  let html=`<div class="staff-welcome"><div class="staff-avatar">🏆</div>
+    <div><h2>My Assignment</h2><p>${emp.name} · ${emp.id} · ${emp.department}</p></div></div>`;
+  if(!won){
+    html+=`<div class="alert alert-info" style="margin-top:0">No assignment yet. Wait for the planner to process bids.</div>`;
+  } else {
+    html+=`<div class="alert alert-success">${won.status==='reward'?'🎁 Reward Allocation':'🏆 Bid Winner'} — Roster #${won.rosterNumber}</div>`;
+    html+=`<div class="card"><div class="card-title">Your Shift Schedule — ${MN[state.month-1]} ${state.year}</div>
+      <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Date</th><th>Shift</th></tr></thead><tbody>`;
+    won.shifts.forEach(s=>{
+      const col=s.code==='OFF'?'var(--text3)':s.code.startsWith('E')?'#ff7043':s.code.startsWith('L')?'#42a5f5':s.code.startsWith('N')?'#ab47bc':'var(--text)';
+      html+=`<tr><td>${s.date}</td><td><strong style="color:${col}">${s.code}</strong></td></tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  }
+  container.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROCESS BIDS — seniority-based + auto-assign non-bidders
+// ═══════════════════════════════════════════════════════════════
+function updateProcessStats(){
+  const nonVac=state.rosters.filter(r=>r.status!=='vacation');
+  const totalBids=state.rosters.reduce((s,r)=>s+r.bids.length,0);
+  const bidderIds=new Set(state.rosters.flatMap(r=>r.bids.map(b=>idLo(b.empId))));
+  el('proc-total').textContent=nonVac.length;
+  el('proc-with-bids').textContent=nonVac.filter(r=>r.bids.length>0).length;
+  el('proc-bid-count').textContent=totalBids;
+  el('proc-bidders').textContent=bidderIds.size;
+  el('proc-nonbid').textContent=state.employees.filter(e=>!bidderIds.has(idLo(e.id))).length;
+
+  const tbody=el('proc-tbody');
+  tbody.innerHTML='';
+  const bidded=state.rosters.filter(r=>r.bids.length>0);
+  if(!bidded.length){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:22px;color:var(--text3)">No bids yet.</td></tr>';return;
+  }
+  bidded.forEach(r=>{
+    const row=document.createElement('tr');
+    row.innerHTML=`<td><strong style="color:var(--accent)">#${r.rosterNumber}</strong></td>
+      <td>${r.department}</td>
+      <td>${r.bids.map((b,i)=>{
+        const e2=empById(b.empId);
+        return`<span style="display:inline-block;margin:2px 4px;padding:3px 8px;background:${i===0?'rgba(52,211,153,0.12)':'var(--surface2)'};border-radius:5px;font-size:12px;font-family:'DM Mono',monospace">${i===0?'🏆 ':''}${b.empName} <span style="color:var(--text3)">#${e2?e2.seniorityRank:b.seniority}</span></span>`;
+      }).join('')}</td>
+      <td><strong>${r.bids.length}</strong></td>`;
+    tbody.appendChild(row);
+  });
+}
+
+function processAllBids(){
+  if(!state.rosters.length){alert('Generate rosters first.');return;}
+  if(!state.employees.length){alert('No employees found. Upload employees and generate rosters first.');return;}
+
+  // Reset
+  state.rosters.forEach(r=>{r.assignedTo=null;if(r.status!=='vacation')r.status='available';});
+  state.processedResults=[];
+  const doneIds=new Set(); // lowercase emp IDs that have been assigned
+
+  // Build bidMap: lowercase empId → [rosterNumbers]
+  const bidMap={};
+  state.rosters.forEach(r=>{
+    r.bids.forEach(b=>{
+      const lo=idLo(b.empId);
+      (bidMap[lo]=bidMap[lo]||[]).push(r.rosterNumber);
+    });
+  });
+
+  // STEP 1: Process bidders — most senior first (lowest seniorityRank wins first)
+  const sortedBidders=[...state.employees]
+    .filter(e=>bidMap[idLo(e.id)])
+    .sort((a,b)=>(a.seniorityRank||9999)-(b.seniorityRank||9999));
+
+  let bidCount=0;
+  sortedBidders.forEach(emp=>{
+    const lo=idLo(emp.id);
+    if(doneIds.has(lo)) return;
+    // Available rosters this emp bid on
+    const avail=state.rosters.filter(r=>r.status==='available' && (bidMap[lo]||[]).includes(r.rosterNumber));
+    if(!avail.length) return;
+    // Pick most-contested (highest bid count = most wanted by others)
+    avail.sort((a,b)=>b.bids.length-a.bids.length);
+    const won=avail[0];
+    won.assignedTo={empId:emp.id,empName:emp.name,seniority:emp.seniorityRank,department:emp.department};
+    won.status='assigned';
+    doneIds.add(lo);
+    bidCount++;
+    state.processedResults.push({roster:won,winner:won.assignedTo,allBidders:[...won.bids],type:'bid'});
+  });
+
+  // STEP 2: Auto-assign non-bidders (anyone with zero bids) — leftover rosters as reward
+  const nonBidders=[...state.employees]
+    .filter(e=>!doneIds.has(idLo(e.id)) && !bidMap[idLo(e.id)])
+    .sort((a,b)=>(a.seniorityRank||9999)-(b.seniorityRank||9999));
+
+  let rewardCount=0;
+  nonBidders.forEach(emp=>{
+    let slot=state.rosters.find(r=>r.status==='available' && r.department===emp.department);
+    if(!slot) slot=state.rosters.find(r=>r.status==='available' && r.line===emp.line);
+    if(!slot) slot=state.rosters.find(r=>r.status==='available');
+    if(!slot) return;
+    slot.assignedTo={empId:emp.id,empName:emp.name,seniority:emp.seniorityRank,department:emp.department};
+    slot.status='reward';
+    doneIds.add(idLo(emp.id));
+    rewardCount++;
+    state.processedResults.push({roster:slot,winner:slot.assignedTo,allBidders:[],type:'reward'});
+  });
+
+  const unassigned=state.rosters.filter(r=>r.status==='available').length;
+
+  // FIX: Rebuild archive entry using ACTUAL ASSIGNED rosters, not generated ones.
+  // An employee who WON a different roster via bidding must carry over from THAT roster's
+  // pattern, not the one originally generated for their slot.
+  // We recover the start offset using roster.originalEmpId → old archO entry.
+  const pa = state._pendingArchive;
+  if(pa){
+    const newR={}, newD={}, newO={};
+    state.rosters.forEach(roster=>{
+      if(!roster.assignedTo) return;                      // unassigned — skip
+      const winnerEmpId = roster.assignedTo.empId;
+      const origEmpId   = roster.originalEmpId;           // who the slot was generated for
+      // Get the offset that was used to generate THIS specific roster slot
+      const origOffset  = (pa.cycleOffsetByEmpId||{})[origEmpId];
+      if(origOffset === undefined) return;                 // vacation or unknown — skip
+      newR[winnerEmpId] = roster.shifts.map(s=>s.code);   // actual worked pattern
+      newD[winnerEmpId] = roster.department;
+      newO[winnerEmpId] = origOffset;                     // carry-over from THIS roster's offset
+    });
+    state._pendingArchive = {...pa, rostersByEmpId:newR, deptByEmpId:newD, cycleOffsetByEmpId:newO};
+    // Auto-save to archive so next month's generation always has carry-over available
+    const arch=loadArchive();
+    const ai=arch.findIndex(a=>a.key===state._pendingArchive.key);
+    if(ai>=0) arch[ai]=state._pendingArchive; else arch.push(state._pendingArchive);
+    saveArchive(arch);
+  }
+
+  saveState(); // ← PERSIST results so staff can see their assignment
+
+  el('proc-result').innerHTML=`<div class="alert alert-success">
+    ✅ <strong>Processing complete!</strong><br>
+    🏆 Bid assignments (by seniority): <strong>${bidCount}</strong><br>
+    🎁 Reward allocations (non-bidders): <strong>${rewardCount}</strong><br>
+    📭 Unassigned rosters: <strong>${unassigned}</strong><br>
+    <small style="opacity:0.75">🗄️ Archive auto-saved — next month will continue correct block patterns.</small>
+  </div>`;
+  const bc=el('nav-bids-count');bc.textContent=state.rosters.reduce((s,r)=>s+r.bids.length,0);
+  renderResults(); renderSummary(); renderBrowse(); updateProcessStats();
+}
+
+function clearAllBids(){
+  if(!confirm('Clear all bids and reset assignments?')) return;
+  state.rosters.forEach(r=>{r.bids=[];r.assignedTo=null;if(r.status!=='vacation')r.status='available';});
+  state.processedResults=[];
+  saveState();
+  updateProcessStats(); renderBrowse(); renderResults(); renderSummary();
+  el('proc-result').innerHTML='<div class="alert alert-info">All bids cleared.</div>';
+  el('nav-bids-count').textContent='0';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RESULTS
+// ═══════════════════════════════════════════════════════════════
+function renderResults(){
+  const tbody=el('results-tbody');
+  tbody.innerHTML='';
+  if(!state.processedResults.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text3)">Process bids first.</td></tr>';return;
+  }
+  state.processedResults.forEach(res=>{
+    const e2=empById(res.winner.empId);
+    const rank=e2?e2.seniorityRank:'—';
+    const isR=res.type==='reward';
+    const row=document.createElement('tr');
+    row.className=isR?'reward-row':'winner-row';
+    row.innerHTML=`
+      <td><strong style="color:var(--accent)">#${res.roster.rosterNumber}</strong></td>
+      <td>${res.roster.department}</td>
+      <td>${isR?'<span style="color:var(--warn)">🎁 Reward</span>':'<span style="color:var(--accent3)">🏆 Bid</span>'}</td>
+      <td><strong style="color:${isR?'var(--warn)':'var(--accent3)'}">${res.winner.empName} <span style="color:var(--text3)">(${res.winner.empId})</span></strong></td>
+      <td>#${rank}</td>
+      <td style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace">
+        ${res.allBidders.map((b,i)=>{const e3=empById(b.empId);return`${i===0?'🏆 ':''}${b.empName}(#${e3?e3.seniorityRank:'?'})`;}).join(' | ')||'—'}
+      </td>`;
+    tbody.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SUMMARY
+// ═══════════════════════════════════════════════════════════════
+function renderSummary(){
+  const nonVac=state.rosters.filter(r=>r.status!=='vacation');
+  el('sum-total').textContent=nonVac.length;
+  el('sum-bid-assigned').textContent=state.rosters.filter(r=>r.status==='assigned').length;
+  el('sum-reward').textContent=state.rosters.filter(r=>r.status==='reward').length;
+  el('sum-open').textContent=nonVac.filter(r=>r.status==='available').length;
+  el('sum-bids').textContent=state.rosters.reduce((s,r)=>s+r.bids.length,0);
+  const empStats={};
+  const bidderLo=new Set(state.rosters.flatMap(r=>r.bids.map(b=>idLo(b.empId))));
+  state.rosters.forEach(r=>{
+    r.bids.forEach(b=>{
+      const lo=idLo(b.empId);
+      if(!empStats[lo]) empStats[lo]={id:b.empId,name:b.empName,dept:b.department,placed:0,won:0,type:'bidder'};
+      empStats[lo].placed++;
+    });
+    if(r.assignedTo){
+      const lo=idLo(r.assignedTo.empId);
+      if(!empStats[lo]) empStats[lo]={id:r.assignedTo.empId,name:r.assignedTo.empName,dept:r.assignedTo.department,placed:0,won:0,type:r.status==='reward'?'non-bidder':'bidder'};
+      empStats[lo].won++;
+    }
+  });
+  state.employees.filter(e=>!bidderLo.has(idLo(e.id))).forEach(e=>{
+    const lo=idLo(e.id);
+    if(!empStats[lo]) empStats[lo]={id:e.id,name:e.name,dept:e.department,placed:0,won:0,type:'non-bidder'};
+  });
+  const tbody=el('sum-tbody'); tbody.innerHTML='';
+  Object.values(empStats).sort((a,b)=>String(a.id).localeCompare(String(b.id))).forEach(s=>{
+    const row=document.createElement('tr');
+    row.innerHTML=`<td><strong style="font-family:'DM Mono',monospace">${s.id}</strong></td>
+      <td>${s.name}</td><td>${s.dept}</td>
+      <td>${s.type==='non-bidder'?'<span style="color:var(--warn)">🚫 Non-bidder</span>':'<span style="color:var(--accent3)">✅ Bidder</span>'}</td>
+      <td>${s.placed}</td><td><strong style="color:var(--accent3)">${s.won}</strong></td>
+      <td>${s.type==='non-bidder'&&s.won>0?'<span style="color:var(--warn)">🎁 Reward</span>':s.won>0?'<span style="color:var(--accent3)">🏆 Won</span>':'—'}</td>`;
+    tbody.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT / ARCHIVE
+// ═══════════════════════════════════════════════════════════════
+function exportResultsCSV(){
+  if(!state.processedResults.length){alert('Process bids first.');return;}
+  let csv='Roster #,Department,Type,Winner Name,Winner ID,Seniority,All Bidders\n';
+  state.processedResults.forEach(res=>{
+    const e2=empById(res.winner.empId);
+    csv+=`${res.roster.rosterNumber},${res.roster.department},${res.type==='reward'?'Reward':'Bid'},${res.winner.empName},${res.winner.empId},#${e2?e2.seniorityRank:'—'},"${res.allBidders.map(b=>`${b.empName}(${b.empId})`).join(', ')}"\n`;
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`roster-${state.year}-${String(state.month).padStart(2,'0')}.csv`;
+  a.click();
+}
+function saveToArchive(){
+  if(!state._pendingArchive){alert('Generate rosters first.');return;}
+  // If bids have been processed, rebuild from assigned rosters (most accurate carry-over)
+  const pa = state._pendingArchive;
+  const hasAssignments = state.rosters.some(r=>r.assignedTo);
+  let archEntry = pa;
+  if(hasAssignments){
+    const newR={}, newD={}, newO={};
+    state.rosters.forEach(roster=>{
+      if(!roster.assignedTo) return;
+      const winnerEmpId = roster.assignedTo.empId;
+      const origEmpId   = roster.originalEmpId;
+      const origOffset  = (pa.cycleOffsetByEmpId||{})[origEmpId];
+      if(origOffset === undefined) return;
+      newR[winnerEmpId] = roster.shifts.map(s=>s.code);
+      newD[winnerEmpId] = roster.department;
+      newO[winnerEmpId] = origOffset;
+    });
+    archEntry = {...pa, rostersByEmpId:newR, deptByEmpId:newD, cycleOffsetByEmpId:newO};
+    state._pendingArchive = archEntry;
+    saveState();
+  }
+  const arch=loadArchive();
+  const i=arch.findIndex(a=>a.key===archEntry.key);
+  if(i>=0) arch[i]=archEntry; else arch.push(archEntry);
+  saveArchive(arch);
+  el('nav-archive-count').textContent=arch.length;
+  renderArchivePanel();
+  alert(`✅ ${MN[state.month-1]} ${state.year} archived with ${hasAssignments?'assigned':'generated'} patterns.`);
+}
+function renderArchivePanel(){
+  const arch=loadArchive();
+  el('nav-archive-count').textContent=arch.length;
+  const div=el('archive-list');
+  if(!arch.length){div.innerHTML='<div class="alert alert-info">No archived months yet.</div>';return;}
+  div.innerHTML='';
+  [...arch].reverse().forEach(entry=>{
+    const ec=Object.keys(entry.rostersByEmpId||{}).length;
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div><strong style="font-size:17px;color:var(--accent)">${MN[entry.month-1]} ${entry.year}</strong>
+      <span class="info-chip" style="margin-left:10px">${ec} employees</span></div>
+      <button class="btn btn-danger btn-sm" onclick="deleteArchive('${entry.key}')">🗑 Delete</button></div>
+      <p style="font-size:11px;color:var(--text3);font-family:'DM Mono',monospace">
+        Saved: ${new Date(entry.generatedAt).toLocaleString()}<br>
+        Carry-over into: ${entry.month===12?MN[0]+' '+(entry.year+1):MN[entry.month]+' '+entry.year}
+      </p>`;
+    div.appendChild(card);
+  });
+}
+function deleteArchive(key){
+  if(!confirm('Delete this archived month?'))return;
+  saveArchive(loadArchive().filter(a=>a.key!==key));
+  renderArchivePanel();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════════════
+function resetAll(){
+  if(!confirm('Reset all rosters, bids and results? (Uploaded employees and archive are kept)'))return;
+  state.employees=[]; state.rosters=[]; state.processedResults=[]; state.monthDates=[]; state._pendingArchive=null;
+  saveState();
+  el('gen-log').style.display='none'; el('gen-log').textContent='';
+  el('gen-stats').style.display='none';
+  el('gen-status').textContent='No rosters generated yet';
+  el('nav-rosters-count').textContent='0'; el('nav-bids-count').textContent='0';
+  renderBrowse(); updateProcessStats(); renderResults(); renderSummary();
+}
+function clearAllData(){
+  if(!confirm('⚠️ Clear ALL data including uploaded employees? This cannot be undone.'))return;
+  clearState();
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BUILD PLANNER PANELS
+// ═══════════════════════════════════════════════════════════════
+function buildPlannerPanels(){
+  el('content-area').innerHTML=`
+<!-- UPLOAD -->
+<div class="tab-panel active" id="panel-upload">
+  <div class="section-header"><h2>📤 Upload Employees</h2><p>Import your staff file. One roster per employee.</p></div>
+  ${state.uploadedEmployees.length?`<div class="alert alert-success" style="margin-bottom:16px">✅ <strong>${state.uploadedEmployees.length}</strong> employees already loaded from previous session. <button class="btn btn-ghost btn-sm" onclick="clearAllData()" style="margin-left:8px">🗑 Clear & Re-upload</button></div>`:''}
+  <div class="upload-zone" id="upload-zone"
+    ondragover="event.preventDefault();this.classList.add('drag-over')"
+    ondragleave="this.classList.remove('drag-over')"
+    ondrop="handleUploadDrop(event)"
+    onclick="document.getElementById('emp-file-input').click()">
+    <div class="upload-zone-icon">📁</div>
+    <h3>Drag & Drop Employee File</h3>
+    <p>Excel (.xlsx / .xls) or CSV accepted</p>
+    <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('emp-file-input').click()">Choose File</button>
+    <input type="file" id="emp-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleEmpFile(this.files[0])">
+  </div>
+  <div id="upload-result" style="margin-top:14px"></div>
+  <div id="col-mapper" style="display:none;margin-top:18px">
+    <div class="card">
+      <div class="card-title">🗂️ Map Columns</div>
+      <div id="raw-headers-preview" style="margin-bottom:14px;padding:9px 13px;background:var(--surface2);border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text2)"></div>
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <div class="form-group"><label>Employee ID <span style="color:var(--danger)">*</span></label><select id="map-id"></select></div>
+        <div class="form-group"><label>Employee Name <span style="color:var(--danger)">*</span></label><select id="map-name"></select></div>
+        <div class="form-group"><label>Department <span style="color:var(--danger)">*</span></label><select id="map-dept"></select></div>
+        <div class="form-group"><label>Position</label><select id="map-pos"><option value="-1">— skip —</option></select></div>
+        <div class="form-group"><label>Line</label><select id="map-line"><option value="-1">— skip —</option></select></div>
+        <div class="form-group"><label>Participates In Bidding</label><select id="map-bid"><option value="-1">— skip (all YES) —</option></select></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">
+        <button class="btn btn-success" onclick="applyColumnMapping()">✅ Apply Mapping & Load</button>
+        <div id="mapper-status" class="info-chip"></div>
+      </div>
+      <div style="margin-top:14px;overflow-x:auto;max-height:200px;overflow-y:auto">
+        <table class="data-table" id="raw-preview-table"></table>
+      </div>
+    </div>
+  </div>
+  <div id="emp-preview" style="display:none;margin-top:22px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">Loaded Employees <span id="emp-preview-count" style="color:var(--accent)"></span></div>
+      <button class="btn btn-ghost btn-sm" onclick="el('col-mapper').style.display='block'">🔧 Re-map</button>
+    </div>
+    <div style="max-height:400px;overflow-y:auto">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>ID</th><th>Name</th><th>Dept</th><th>Position</th><th>Line</th><th>Bidding?</th></tr></thead>
+        <tbody id="emp-preview-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATOR -->
+<div class="tab-panel" id="panel-generator">
+  <div class="section-header"><h2>⚙️ Configure & Generate</h2><p>Block-shift: 5 on / 2 off per rotation. Carries over from previous month if archived.</p></div>
+  <div id="carry-banner" class="carry-banner" style="display:none"><span style="font-size:18px">↩</span>
+    <div><strong>Previous month carry-over detected</strong><br><span id="carry-banner-detail" style="font-size:12px;opacity:0.8"></span></div>
+  </div>
+  <div class="card"><div class="card-title">📅 Period</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Year</label><input type="number" id="gen-year" value="${state.year}" min="2020" max="2035" onchange="checkCarryOver()"></div>
+      <div class="form-group"><label>Month</label>
+        <select id="gen-month" onchange="checkCarryOver()">
+          ${MN.map((m,i)=>`<option value="${i+1}"${i+1===state.month?' selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Vacation % (headcount only)</label><input type="number" id="gen-vac" value="10" min="0" max="50"></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-title">🏢 Departments</div>
+    <div style="overflow-x:auto"><table class="dept-table">
+      <thead><tr><th>Department</th><th>Line</th><th>Position</th><th>HC</th><th>Shifts</th><th>Include</th></tr></thead>
+      <tbody id="dept-tbody"></tbody>
+    </table></div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+    <button class="btn btn-success" onclick="generateRosters()">⚡ Generate Rosters</button>
+    <button class="btn btn-ghost" onclick="resetAll()">🔄 Reset Rosters</button>
+    <div class="info-chip" id="gen-status">${state.rosters.length?`✓ ${state.rosters.length} rosters loaded`:'No rosters generated yet'}</div>
+  </div>
+  <div id="gen-log" style="display:none"></div>
+  <div id="gen-stats" style="${state.rosters.length?'':'display:none'}">
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+    <div class="stats-grid">
+      <div class="stat-card accent"><div class="label">Rosters</div><div class="value" id="gs-rosters">${state.rosters.length}</div></div>
+      <div class="stat-card"><div class="label">Employees</div><div class="value" id="gs-emps">${state.employees.length}</div></div>
+      <div class="stat-card warn"><div class="label">Vacation</div><div class="value" id="gs-vac">${state.rosters.filter(r=>r.status==='vacation').length}</div></div>
+      <div class="stat-card"><div class="label">Days</div><div class="value" id="gs-days">${state.monthDates.length}</div></div>
+      <div class="stat-card"><div class="label">Depts</div><div class="value" id="gs-depts">${new Set(state.rosters.map(r=>r.department)).size}</div></div>
+      <div class="stat-card purple"><div class="label">Non-Bidders</div><div class="value" id="gs-nonbid">${state.employees.filter(e=>!e.participatesInBidding).length}</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BROWSE -->
+<div class="tab-panel" id="panel-browse">
+  <div class="section-header"><h2>🗂️ Browse Rosters</h2></div>
+  <div class="card">
+    <div class="form-group" style="max-width:260px"><label>Filter Department</label>
+      <select id="bid-dept-filter" onchange="renderBrowse()"><option value="">All</option></select>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#ff7043"></div>E</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#42a5f5"></div>L</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ab47bc"></div>N</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#607d8b"></div>OFF</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div>VAC</div>
+  </div>
+  <div class="roster-grid" id="browse-grid"></div>
+</div>
+
+<!-- PROCESS -->
+<div class="tab-panel" id="panel-process">
+  <div class="section-header"><h2>⚖️ Process Bids</h2>
+    <p>Assigns by seniority rank. Non-bidders (zero bids placed) receive leftover rosters as reward.</p></div>
+  <div class="stats-grid">
+    <div class="stat-card accent"><div class="label">Total Rosters</div><div class="value" id="proc-total">0</div></div>
+    <div class="stat-card"><div class="label">With Bids</div><div class="value" id="proc-with-bids">0</div></div>
+    <div class="stat-card success"><div class="label">Total Bids</div><div class="value" id="proc-bid-count">0</div></div>
+    <div class="stat-card"><div class="label">Unique Bidders</div><div class="value" id="proc-bidders">0</div></div>
+    <div class="stat-card purple"><div class="label">Non-Bidders</div><div class="value" id="proc-nonbid">0</div></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:20px">
+    <button class="btn btn-success" style="font-size:14px;padding:11px 26px" onclick="processAllBids()">🎯 Process All Bids</button>
+    <button class="btn btn-danger" onclick="clearAllBids()">🗑️ Clear All Bids</button>
+  </div>
+  <div id="proc-result"></div>
+  <div class="card-title" style="margin-top:6px">Bids Review</div>
+  <div style="overflow-x:auto">
+    <table class="data-table"><thead><tr><th>Roster #</th><th>Dept</th><th>Bidders (most senior first)</th><th>#</th></tr></thead>
+    <tbody id="proc-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="tab-panel" id="panel-results">
+  <div class="section-header"><h2>🏆 Results</h2></div>
+  <div style="display:flex;gap:10px;margin-bottom:16px">
+    <button class="btn btn-primary" onclick="exportResultsCSV()">📥 Export CSV</button>
+    <button class="btn btn-ghost" onclick="saveToArchive()">🗄️ Save to Archive</button>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="data-table"><thead><tr><th>Roster #</th><th>Dept</th><th>Type</th><th>Assigned To</th><th>Seniority</th><th>All Bidders</th></tr></thead>
+    <tbody id="results-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="tab-panel" id="panel-summary">
+  <div class="section-header"><h2>📊 Summary</h2></div>
+  <div class="stats-grid">
+    <div class="stat-card accent"><div class="label">Total</div><div class="value" id="sum-total">0</div></div>
+    <div class="stat-card success"><div class="label">Bid-Assigned</div><div class="value" id="sum-bid-assigned">0</div></div>
+    <div class="stat-card warn"><div class="label">Reward</div><div class="value" id="sum-reward">0</div></div>
+    <div class="stat-card danger"><div class="label">Unassigned</div><div class="value" id="sum-open">0</div></div>
+    <div class="stat-card"><div class="label">Total Bids</div><div class="value" id="sum-bids">0</div></div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="data-table"><thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Bidding?</th><th>Placed</th><th>Won</th><th>Type</th></tr></thead>
+    <tbody id="sum-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- ARCHIVE -->
+<div class="tab-panel" id="panel-archive">
+  <div class="section-header"><h2>🗄️ Month Archive</h2></div>
+  <div id="archive-list"></div>
+</div>`;
+
+  // Build dept table
+  DEPT_CONFIGS.forEach(cfg=>{
+    state.deptIncludes[cfg.dept]=true;
+    const pills=cfg.shifts.map(s=>`<span class="shift-pill pill-${s}">${s}</span>`).join('→');
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${cfg.dept}</strong></td><td>${cfg.line}</td><td>${cfg.position}</td><td>${cfg.headcount}</td><td>${pills}</td>
+      <td><input type="checkbox" checked style="width:15px;height:15px;accent-color:var(--accent)" onchange="state.deptIncludes['${cfg.dept}']=this.checked"></td>`;
+    el('dept-tbody').appendChild(tr);
+  });
+
+  // Restore previously uploaded employees preview
+  if(state.uploadedEmployees.length) renderEmpPreview(state.uploadedEmployees);
+
+  checkCarryOver(); renderArchivePanel();
+  populateBrowseFilters(); renderBrowse(); updateProcessStats(); renderResults(); renderSummary();
+  switchPanel('upload');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BUILD STAFF PORTAL
+// ═══════════════════════════════════════════════════════════════
+function buildStaffPortal(){
+  el('content-area').innerHTML=`
+<div class="tab-panel" id="panel-staff-bid">
+  <div id="staff-bid-content" style="max-width:900px;margin:0 auto;padding-top:8px"></div>
+</div>
+<div class="tab-panel" id="panel-staff-results">
+  <div id="staff-results-content" style="max-width:900px;margin:0 auto;padding-top:8px"></div>
+</div>`;
+  switchPanel('staff-bid');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PANEL SWITCHING
+// ═══════════════════════════════════════════════════════════════
+function switchPanel(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const panel=document.getElementById(`panel-${name}`);
+  const nav=document.querySelector(`.nav-item[data-panel="${name}"]`);
+  if(!panel) return;
+  panel.classList.add('active');
+  if(nav) nav.classList.add('active');
+  if(name==='process')       updateProcessStats();
+  if(name==='results')       renderResults();
+  if(name==='summary')       renderSummary();
+  if(name==='browse')        { populateBrowseFilters(); renderBrowse(); }
+  if(name==='archive')       renderArchivePanel();
+  if(name==='staff-bid')     renderStaffBid();
+  if(name==='staff-results') renderStaffResults();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BOOT — load persisted state before anything renders
+// ═══════════════════════════════════════════════════════════════
+loadState();
+</script>
 </body>
 </html>
