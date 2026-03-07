@@ -1,1 +1,3044 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shift Roster System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f5f7fa;--surface:#ffffff;--surface2:#f0f3f7;--surface3:#e8edf4;
+  --border:#dde3ec;--accent:#3b6fd4;--accent2:#6d44c4;--accent3:#0f9e6e;
+  --warn:#c47d0a;--danger:#c93636;--text:#1a2236;--text2:#5a6880;--text3:#9ba8bc;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;top:-30%;left:-10%;width:60%;height:60%;background:radial-gradient(ellipse,rgba(59,111,212,0.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:50%;background:radial-gradient(ellipse,rgba(109,68,196,0.04) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+/* LOGIN */
+/* ═══════════════════════════════════════════════
+   LOGIN SCREEN — Flow Roster faithful recreation
+   ═══════════════════════════════════════════════ */
+#login-screen{
+  position:fixed;inset:0;z-index:1000;
+  background:#0d1520;
+  display:flex;flex-direction:column;
+  overflow-y:auto;overflow-x:hidden;
+  font-family:'Syne',sans-serif;
+}
+/* Canvas for the node/star network background */
+#ls-bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ── Topnav ── */
+.fl-nav{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;
+  padding:0 32px;height:52px;
+  background:rgba(8,14,24,0.96);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  flex-shrink:0;
+}
+.fl-logo{display:flex;align-items:center;gap:4px;font-size:17px;letter-spacing:0.5px;color:#fff;font-weight:800;margin-right:40px;}
+.fl-logo span{font-weight:400;color:rgba(255,255,255,0.7);}
+.fl-nav-links{display:flex;gap:6px;}
+.fl-nav-links a{
+  padding:5px 14px;font-size:12px;color:rgba(255,255,255,0.6);
+  text-decoration:none;border-radius:5px;transition:all 0.15s;
+}
+.fl-nav-links a:hover{background:rgba(255,255,255,0.07);color:#fff;}
+.fl-nav-links a::after{content:' ∨';font-size:9px;opacity:0.5;}
+.fl-spacer{flex:1;}
+.fl-login-btn{
+  padding:7px 20px;font-size:13px;font-weight:600;
+  background:transparent;border:1px solid rgba(255,255,255,0.3);
+  border-radius:6px;color:#fff;cursor:pointer;transition:all 0.15s;
+}
+.fl-login-btn:hover{background:rgba(255,255,255,0.1);}
+
+/* ── Page body ── */
+.fl-page{
+  position:relative;z-index:10;
+  display:flex;flex-direction:column;align-items:center;
+  padding:60px 24px 80px;gap:0;
+}
+
+/* ── Hero ── */
+.fl-hero{text-align:center;margin-bottom:36px;}
+.fl-hero h1{
+  font-size:clamp(28px,4.5vw,46px);font-weight:800;
+  color:#fff;letter-spacing:-0.5px;line-height:1.15;margin-bottom:10px;
+}
+.fl-hero-sub{font-size:16px;color:rgba(255,255,255,0.55);margin-bottom:28px;}
+.fl-hero-btns{display:flex;gap:12px;justify-content:center;margin-bottom:22px;}
+.fl-btn-green{
+  padding:13px 36px;font-size:15px;font-weight:700;
+  background:linear-gradient(180deg,#3ecf4c,#27a835);
+  border:none;border-radius:6px;color:#fff;cursor:pointer;
+  box-shadow:0 2px 18px rgba(50,200,80,0.35);transition:all 0.18s;
+  letter-spacing:0.3px;
+}
+.fl-btn-green:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.fl-btn-outline{
+  padding:13px 36px;font-size:15px;font-weight:600;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.25);
+  border-radius:6px;color:#fff;cursor:pointer;transition:all 0.18s;letter-spacing:0.3px;
+}
+.fl-btn-outline:hover{background:rgba(255,255,255,0.13);}
+.fl-status-row{display:flex;gap:20px;justify-content:center;font-size:12px;color:rgba(255,255,255,0.6);}
+.fl-status-item{display:flex;align-items:center;gap:6px;}
+.fl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.fl-dot.green{background:#3ecf4c;box-shadow:0 0 7px #3ecf4c;}
+.fl-dot.yellow{background:#f5c518;box-shadow:0 0 7px #f5c518;}
+
+/* ── Feature cards (3-col) ── */
+.fl-features{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
+  width:100%;max-width:900px;margin-bottom:24px;
+}
+.fl-feat-card{
+  background:rgba(15,25,42,0.85);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px;padding:28px 22px 22px;
+  position:relative;overflow:hidden;transition:all 0.2s;
+}
+.fl-feat-card::before{
+  content:'';position:absolute;inset:0;border-radius:12px;
+  background:linear-gradient(145deg,rgba(60,207,76,0.06),transparent 60%);
+  pointer-events:none;
+}
+.fl-feat-card:hover{border-color:rgba(60,207,76,0.3);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.5);}
+.fl-feat-icon{
+  width:64px;height:64px;border-radius:12px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;font-size:30px;
+  background:rgba(0,0,0,0.35);border:1px solid rgba(60,207,76,0.2);
+  box-shadow:0 0 24px rgba(60,207,76,0.12) inset;
+}
+.fl-feat-card h3{font-size:16px;font-weight:800;color:#fff;margin-bottom:6px;}
+.fl-feat-card p{font-size:12px;color:rgba(255,255,255,0.45);}
+
+/* ── Portal cards (3-col) ── */
+.fl-portals-wrap{
+  width:100%;max-width:900px;
+  background:rgba(10,18,32,0.9);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:20px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  margin-bottom:56px;
+}
+.fl-portal-card{
+  background:rgba(20,32,52,0.7);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:10px;padding:22px 18px;
+  transition:all 0.2s;
+}
+.fl-portal-card.highlight{
+  background:rgba(30,55,100,0.7);
+  border-color:rgba(80,140,255,0.35);
+  box-shadow:0 0 0 1px rgba(80,140,255,0.15);
+}
+.fl-portal-card:hover{border-color:rgba(255,255,255,0.2);transform:translateY(-2px);}
+.fl-portal-card h3{font-size:15px;font-weight:800;color:#fff;margin-bottom:7px;}
+.fl-portal-card p{font-size:11px;color:rgba(255,255,255,0.4);line-height:1.5;margin-bottom:18px;}
+.fl-portal-btn{
+  width:100%;padding:9px;font-size:12px;font-weight:700;letter-spacing:0.5px;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.2);
+  border-radius:6px;color:#fff;cursor:pointer;transition:all 0.15s;
+}
+.fl-portal-btn:hover{background:rgba(255,255,255,0.14);}
+
+/* ── Login modal overlay (shown when clicking portal btns) ── */
+.fl-modal-overlay{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(5,10,20,0.85);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;
+}
+.fl-modal-overlay.open{display:flex;}
+.fl-modal{
+  width:100%;max-width:440px;margin:20px;
+  background:#111e33;border:1px solid rgba(255,255,255,0.12);
+  border-radius:16px;padding:36px;position:relative;
+  box-shadow:0 32px 80px rgba(0,0,0,0.7);
+  animation:modalIn 0.25s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(0.93)}to{opacity:1;transform:scale(1)}}
+.fl-modal-close{
+  position:absolute;top:16px;right:16px;width:28px;height:28px;
+  background:rgba(255,255,255,0.07);border:none;border-radius:6px;
+  color:rgba(255,255,255,0.5);font-size:16px;cursor:pointer;transition:all 0.15s;
+}
+.fl-modal-close:hover{background:rgba(255,255,255,0.15);color:#fff;}
+.fl-modal-eyebrow{font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.35);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.fl-modal h2{font-size:22px;font-weight:800;color:#fff;margin-bottom:4px;}
+.fl-modal-sub{font-size:12px;color:rgba(255,255,255,0.38);margin-bottom:28px;}
+
+/* form fields inside modal */
+.login-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.login-field label{font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;}
+.login-field input{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;padding:12px 15px;color:#fff;font-size:14px;
+  font-family:'Syne',sans-serif;outline:none;transition:all 0.18s;width:100%;
+}
+.login-field input::placeholder{color:rgba(255,255,255,0.2);}
+.login-field input:focus{border-color:rgba(60,207,76,0.6);background:rgba(60,207,76,0.04);box-shadow:0 0 0 3px rgba(60,207,76,0.1);}
+.login-error{font-size:11px;color:#ff6b6b;font-family:'DM Mono',monospace;min-height:18px;margin-bottom:8px;}
+.btn-login-planner,.btn-login-staff{
+  width:100%;padding:13px;border:none;border-radius:8px;
+  font-size:14px;font-weight:700;font-family:'Syne',sans-serif;
+  cursor:pointer;transition:all 0.18s;letter-spacing:0.3px;
+  background:linear-gradient(180deg,#3ecf4c,#27a835);color:#fff;
+  box-shadow:0 4px 18px rgba(50,200,80,0.3);
+}
+.btn-login-planner:hover,.btn-login-staff:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.login-hint{font-size:10px;color:rgba(255,255,255,0.22);text-align:center;margin-top:10px;font-family:'DM Mono',monospace;}
+.login-wrap{display:none;}/* hide old login-wrap */
+
+/* HEADER */
+.header{position:sticky;top:0;z-index:100;padding:14px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);}
+.header-icon{width:38px;height:38px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.header-text h1{font-size:17px;font-weight:800;letter-spacing:-0.3px;color:var(--text);}
+.header-text p{font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;margin-top:1px;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.header-badge{padding:4px 12px;background:rgba(59,111,212,0.08);border:1px solid rgba(59,111,212,0.2);border-radius:16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);}
+.header-badge.green{background:rgba(15,158,110,0.08);border-color:rgba(15,158,110,0.22);color:var(--accent3);}
+.header-badge.warn{background:rgba(196,125,10,0.08);border-color:rgba(196,125,10,0.22);color:var(--warn);}
+.user-badge{display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:12px;font-family:'DM Mono',monospace;color:var(--text2);}
+.user-dot{width:8px;height:8px;border-radius:50%;}
+.user-dot.planner{background:var(--accent);}
+.user-dot.staff{background:var(--accent3);}
+.btn-logout{padding:5px 12px;background:rgba(201,54,54,0.07);border:1px solid rgba(201,54,54,0.2);border-radius:8px;color:var(--danger);font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.15s;}
+.btn-logout:hover{background:rgba(201,54,54,0.14);}
+
+/* LAYOUT */
+.main{position:relative;z-index:1;display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 65px);}
+.sidebar{border-right:1px solid var(--border);padding:20px 0;background:var(--surface);position:sticky;top:65px;height:calc(100vh - 65px);overflow-y:auto;}
+.sidebar-label{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:2px;color:var(--text3);text-transform:uppercase;padding:14px 14px 6px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;transition:all 0.15s;position:relative;margin:2px 6px;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(59,111,212,0.09);color:var(--accent);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;height:60%;width:3px;background:var(--accent);border-radius:0 3px 3px 0;}
+.nav-icon{font-size:14px;width:18px;text-align:center;}
+.nav-badge{margin-left:auto;padding:2px 7px;background:var(--accent);color:white;border-radius:10px;font-size:10px;font-family:'DM Mono',monospace;}
+.nav-badge.warn{background:var(--warn);color:white;}
+
+/* CONTENT */
+.content{padding:28px 36px;overflow-y:auto;}
+.tab-panel{display:none;}.tab-panel.active{display:block;animation:fadeIn 0.2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.section-header{margin-bottom:24px;}
+.section-header h2{font-size:22px;font-weight:800;letter-spacing:-0.5px;margin-bottom:5px;color:var(--text);}
+.section-header p{color:var(--text2);font-size:13px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:18px;box-shadow:0 1px 4px rgba(26,34,54,0.05);}
+.card-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;font-family:'DM Mono',monospace;}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:36px 28px;text-align:center;cursor:pointer;transition:all 0.25s;background:var(--surface2);}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(59,111,212,0.04);transform:scale(1.01);}
+.upload-zone-icon{font-size:44px;margin-bottom:12px;}
+.upload-zone h3{font-size:17px;font-weight:700;margin-bottom:7px;color:var(--text);}
+.upload-zone p{color:var(--text2);font-size:13px;margin-bottom:14px;}
+.upload-zone .hint{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:8px;}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:18px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group label{font-size:10px;font-family:'DM Mono',monospace;color:var(--text2);letter-spacing:0.5px;text-transform:uppercase;}
+.form-group select,.form-group input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;color:var(--text);font-size:14px;font-family:'Syne',sans-serif;outline:none;transition:all 0.15s;}
+.form-group select:focus,.form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,111,212,0.1);}
+.form-group select option{background:var(--surface);}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;transition:all 0.15s;display:inline-flex;align-items:center;gap:7px;}
+.btn-primary{background:var(--accent);color:white;}.btn-primary:hover{background:#2d58b0;transform:translateY(-1px);}
+.btn-success{background:var(--accent3);color:white;}.btn-success:hover{background:#0b7d57;transform:translateY(-1px);}
+.btn-danger{background:var(--danger);color:white;}.btn-danger:hover{background:#a82c2c;}
+.btn-warn{background:var(--warn);color:white;}.btn-warn:hover{background:#9c6408;}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}.btn-ghost:hover{background:var(--surface3);color:var(--text);}
+.btn-sm{padding:6px 13px;font-size:11px;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:22px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(26,34,54,0.04);}
+.stat-card .label{font-size:9px;font-family:'DM Mono',monospace;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;}
+.stat-card .value{font-size:28px;font-weight:800;line-height:1;color:var(--text);}
+.stat-card.accent .value{color:var(--accent);}.stat-card.success .value{color:var(--accent3);}
+.stat-card.warn .value{color:var(--warn);}.stat-card.danger .value{color:var(--danger);}
+.stat-card.purple .value{color:var(--accent2);}
+
+/* TABLES */
+.data-table{width:100%;border-collapse:collapse;font-size:13px;}
+.data-table th{background:var(--surface2);padding:9px 13px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;border-bottom:1px solid var(--border);}
+.data-table td{padding:9px 13px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;}
+.data-table tr:hover td{background:var(--surface2);}
+.winner-row td{background:rgba(15,158,110,0.05);}
+.reward-row td{background:rgba(196,125,10,0.05);}
+
+/* SHIFT PILLS */
+.shift-pill{display:inline-block;padding:2px 7px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;margin:1px;}
+.pill-E{background:#fee2e2;color:#b91c1c;}.pill-L{background:#dbeafe;color:#1d4ed8;}
+.pill-N{background:#ede9fe;color:#6d28d9;}.pill-E1{background:#ffedd5;color:#c2410c;}
+.pill-L1{background:#e0f2fe;color:#0369a1;}.pill-L2{background:#dbeafe;color:#1e40af;}
+.pill-N1{background:#f3e8ff;color:#7e22ce;}.pill-OFF{background:#f1f5f9;color:#64748b;}
+
+/* ROSTER CARDS */
+.roster-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:14px;}
+.roster-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(26,34,54,0.06);}
+.roster-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity 0.2s;}
+.roster-card:hover{border-color:rgba(59,111,212,0.35);transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,34,54,0.1);}
+.roster-card:hover::before{opacity:1;}
+.roster-card.selected{border-color:var(--accent);background:rgba(59,111,212,0.04);}
+.roster-card.selected::before{opacity:1;}
+.roster-card.cannot-bid{opacity:0.4;cursor:not-allowed;}
+.roster-card.cannot-bid:hover{transform:none;box-shadow:none;}
+.roster-card.assigned{border-color:rgba(15,158,110,0.35);background:rgba(15,158,110,0.03);}
+.roster-card.reward{border-color:rgba(196,125,10,0.35);background:rgba(196,125,10,0.03);}
+.roster-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.roster-num{font-size:16px;font-weight:800;color:var(--accent);font-family:'DM Mono',monospace;}
+.roster-dept-badge{padding:2px 8px;background:rgba(109,68,196,0.08);border:1px solid rgba(109,68,196,0.2);border-radius:4px;font-size:9px;font-family:'DM Mono',monospace;color:var(--accent2);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.shift-strip{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:9px;}
+.shift-cell{width:18px;height:21px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-family:'DM Mono',monospace;font-weight:600;}
+.cell-E{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;}
+.cell-L{background:#dbeafe;color:#1d4ed8;border:1px solid #bfdbfe;}
+.cell-N{background:#ede9fe;color:#6d28d9;border:1px solid #ddd6fe;}
+.cell-E1{background:#ffedd5;color:#c2410c;border:1px solid #fed7aa;}
+.cell-L1{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;}
+.cell-L2{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;}
+.cell-N1{background:#f3e8ff;color:#7e22ce;border:1px solid #e9d5ff;}
+.cell-OFF{background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0;}
+.cell-VAC{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0;}
+.cell-CONT{outline:2px solid var(--warn);outline-offset:-1px;}
+.roster-card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:9px;border-top:1px solid var(--border);}
+.bid-label{font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;}
+.bid-count-badge{padding:2px 8px;background:rgba(59,111,212,0.08);border:1px solid rgba(59,111,212,0.2);border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);}
+
+/* MY BIDS PANEL */
+.my-bids-panel{background:rgba(15,158,110,0.05);border:1px solid rgba(15,158,110,0.2);border-radius:10px;padding:12px;margin-bottom:14px;}
+.my-bids-panel h3{font-size:11px;color:var(--accent3);margin-bottom:7px;font-family:'DM Mono',monospace;}
+.bid-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--surface2);border:1px solid rgba(15,158,110,0.2);border-radius:5px;font-size:11px;margin:2px;color:var(--accent3);font-family:'DM Mono',monospace;}
+
+/* EMP INFO BAR */
+.emp-info-bar{padding:10px 15px;border-radius:8px;margin-bottom:12px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.emp-info-bar.found{background:rgba(59,111,212,0.06);border:1px solid rgba(59,111,212,0.16);}
+.emp-info-bar.nope{background:rgba(201,54,54,0.06);border:1px solid rgba(201,54,54,0.16);color:var(--danger);}
+.emp-info-bar.warn{background:rgba(196,125,10,0.06);border:1px solid rgba(196,125,10,0.16);color:var(--warn);}
+.emp-tag{padding:2px 8px;background:rgba(59,111,212,0.1);border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);}
+
+/* ALERTS */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:12px;display:flex;align-items:flex-start;gap:9px;}
+.alert-success{background:#d1fae5;border:1px solid #a7f3d0;color:#064e3b;}
+.alert-warn{background:#fef3c7;border:1px solid #fde68a;color:#78350f;}
+.alert-danger{background:#fee2e2;border:1px solid #fecaca;color:#7f1d1d;}
+.alert-info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e3a8a;}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:9px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
+.legend-dot{width:9px;height:9px;border-radius:2px;}
+
+/* LOG */
+#gen-log{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'DM Mono',monospace;font-size:11px;color:#065f46;max-height:160px;overflow-y:auto;line-height:1.9;display:none;}
+
+/* MISC */
+.controls-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;}
+.info-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text2);}
+.carry-banner{background:#fef9ec;border:1px solid #fde68a;border-radius:10px;padding:13px 17px;margin-bottom:18px;display:flex;align-items:center;gap:12px;font-size:13px;color:#78350f;}
+.dept-table{width:100%;border-collapse:collapse;font-size:13px;}
+.dept-table th{background:var(--surface2);padding:8px 12px;text-align:left;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--text2);text-transform:uppercase;border-bottom:1px solid var(--border);}
+.dept-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+.dept-table tr:hover td{background:var(--surface2);}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--surface2);}::-webkit-scrollbar-thumb{background:#c8d0de;border-radius:3px;}
+@media(max-width:768px){.main{grid-template-columns:1fr;}.sidebar{display:none;}.content{padding:18px;}.login-wrap{grid-template-columns:1fr;}}
+
+/* STAFF VIEW */
+.staff-portal{max-width:860px;margin:0 auto;}
+.staff-welcome{background:linear-gradient(135deg,rgba(59,111,212,0.06),rgba(109,68,196,0.06));border:1px solid rgba(59,111,212,0.15);border-radius:14px;padding:24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;}
+.staff-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;color:white;}
+.staff-welcome h2{font-size:20px;font-weight:800;color:var(--text);}
+.staff-welcome p{font-size:13px;color:var(--text2);margin-top:4px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+
+  <!-- Animated network background -->
+  <canvas id="ls-bg"></canvas>
+
+  <!-- Top nav -->
+  <nav class="fl-nav">
+    <div class="fl-logo">🚂 &nbsp;FLOW <span>ROSTER</span></div>
+    <div class="fl-nav-links">
+      <a href="#">Platform</a>
+      <a href="#">Solutions</a>
+      <a href="#">Support</a>
+    </div>
+    <div class="fl-spacer"></div>
+    <button class="fl-login-btn" onclick="openModal('planner')">Log In</button>
+  </nav>
+
+  <!-- Scrollable page body -->
+  <div class="fl-page">
+
+    <!-- Hero -->
+    <div class="fl-hero">
+      <h1>Smart Leave &amp; Roster Automation</h1>
+      <p class="fl-hero-sub">For Operations &amp; Control Centers</p>
+      <div class="fl-hero-btns">
+        <button class="fl-btn-green" onclick="openModal('staff')">Sign In</button>
+        <button class="fl-btn-outline" onclick="openModal('planner')">Planner Access</button>
+      </div>
+      <div class="fl-status-row">
+        <span class="fl-status-item"><span class="fl-dot green"></span>Bidding Open</span>
+        <span class="fl-status-item"><span class="fl-dot green"></span>System Online</span>
+        <span class="fl-status-item"><span class="fl-dot yellow"></span>14 Requests Pending</span>
+      </div>
+    </div>
+
+    <!-- 3 Feature cards -->
+    <div class="fl-features">
+      <div class="fl-feat-card">
+        <div class="fl-feat-icon">📋</div>
+        <h3>Smart Leave Bidding</h3>
+        <p>Automated Fairness &amp; Ranking</p>
+      </div>
+      <div class="fl-feat-card">
+        <div class="fl-feat-icon">⏱️</div>
+        <h3>Roster Optimization</h3>
+        <p>AI-Powered Shift Planning</p>
+      </div>
+      <div class="fl-feat-card">
+        <div class="fl-feat-icon">🛡️</div>
+        <h3>Coverage Monitoring</h3>
+        <p>Real-Time Staffing Insights</p>
+      </div>
+    </div>
+
+    <!-- 3 Portal cards -->
+    <div class="fl-portals-wrap">
+      <div class="fl-portal-card">
+        <h3>Employee Portal</h3>
+        <p>Access your schedule &amp; submit leave bids</p>
+        <button class="fl-portal-btn" onclick="openModal('staff')">Enter Portal</button>
+      </div>
+      <div class="fl-portal-card highlight">
+        <h3>Planner Portal</h3>
+        <p>Manage shift allocations &amp; review bids</p>
+        <button class="fl-portal-btn" onclick="openModal('planner')">Enter Portal</button>
+      </div>
+      <div class="fl-portal-card">
+        <h3>Control Center</h3>
+        <p>Oversee operations &amp; staffing levels</p>
+        <button class="fl-portal-btn" onclick="openModal('planner')">Enter Portal</button>
+      </div>
+    </div>
+
+    <!-- Dashboard preview section -->
+    <div style="text-align:center;margin-bottom:28px;">
+      <h2 style="font-size:26px;font-weight:800;color:#fff;margin-bottom:4px;">See the Platform in Action</h2>
+      <div style="width:60px;height:2px;background:linear-gradient(90deg,transparent,#3ecf4c,transparent);margin:10px auto 28px;"></div>
+      <!-- App mockup frame -->
+      <div style="
+        max-width:700px;margin:0 auto;
+        background:#0a1322;
+        border:1px solid rgba(255,255,255,0.12);
+        border-radius:14px;overflow:hidden;
+        box-shadow:0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(60,207,76,0.1);
+      ">
+        <!-- Mockup titlebar -->
+        <div style="background:#0d1a2e;padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,0.06);">
+          <span style="font-weight:800;font-size:12px;color:#fff;">🚂 FLOW <span style="font-weight:400;opacity:0.6">ROSTER</span></span>
+          <div style="flex:1"></div>
+          <span style="font-size:18px;">🌐</span>
+          <span style="font-size:18px;">🔔</span>
+          <span style="font-size:18px;">⚙️</span>
+        </div>
+        <!-- Mockup body -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 200px;gap:1px;background:rgba(255,255,255,0.05);min-height:260px;">
+          <!-- Heatmap panel -->
+          <div style="background:#0c1828;padding:14px;">
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:10px;font-family:'DM Mono',monospace;">ROSTER DISTRIBUTION</div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">
+              <!-- generate heatmap cells via inline SVG look -->
+              <script>
+                // This will be done with CSS, not JS in inline
+              </script>
+              <!-- 35 heatmap cells -->
+              <div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.15)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.35)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.55)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.25)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.7)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.4)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.2)"></div>
+              <div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.45)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.9)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.6)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.3)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.8)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.5)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.15)"></div>
+              <div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.3)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.65)"></div><div style="height:18px;border-radius:2px;background:rgba(255,200,0,0.5)"></div><div style="height:18px;border-radius:2px;background:rgba(255,200,0,0.7)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.4)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.25)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.55)"></div>
+              <div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.2)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.4)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.6)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,1.0)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.35)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.5)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.7)"></div>
+              <div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.5)"></div><div style="height:18px;border-radius:2px;background:rgba(255,120,0,0.4)"></div><div style="height:18px;border-radius:2px;background:rgba(255,120,0,0.6)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.45)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.25)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.7)"></div><div style="height:18px;border-radius:2px;background:rgba(60,207,76,0.3)"></div>
+            </div>
+          </div>
+          <!-- Shift distribution chart -->
+          <div style="background:#0c1828;padding:14px;">
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:10px;font-family:'DM Mono',monospace;">SHIFT DISTRIBUTION</div>
+            <!-- Simple bar chart SVG -->
+            <svg viewBox="0 0 200 80" style="width:100%;height:80px;">
+              <polyline points="10,60 40,45 70,50 100,30 130,35 160,20 190,25" fill="none" stroke="#3ecf4c" stroke-width="2"/>
+              <polyline points="10,70 40,65 70,55 100,60 130,45 160,55 190,40" fill="none" stroke="rgba(80,140,255,0.7)" stroke-width="1.5"/>
+              <circle cx="160" cy="20" r="3" fill="#3ecf4c"/>
+            </svg>
+            <div style="display:flex;gap:12px;margin-top:6px;">
+              <span style="font-size:9px;color:rgba(255,255,255,0.3);font-family:'DM Mono',monospace;">Early</span>
+              <span style="font-size:9px;color:rgba(255,255,255,0.3);font-family:'DM Mono',monospace;">Late</span>
+              <span style="font-size:9px;color:rgba(255,255,255,0.3);font-family:'DM Mono',monospace;">Night</span>
+            </div>
+          </div>
+          <!-- Live stats panel -->
+          <div style="background:#0a1422;padding:16px;border-left:1px solid rgba(255,255,255,0.05);">
+            <div style="font-size:10px;color:rgba(255,255,255,0.5);margin-bottom:14px;font-family:'DM Mono',monospace;letter-spacing:1px;">LIVE OVERVIEW</div>
+            <div style="margin-bottom:12px;"><span style="font-size:26px;font-weight:800;color:#fff;">412</span><br><span style="font-size:10px;color:rgba(255,255,255,0.4);">Employees Eligible</span></div>
+            <div style="margin-bottom:12px;"><span style="font-size:26px;font-weight:800;color:#3ecf4c;">338</span><br><span style="font-size:10px;color:rgba(255,255,255,0.4);">Bids Submitted</span></div>
+            <div><span style="font-size:26px;font-weight:800;color:#f5c518;">96<span style="font-size:14px">%</span></span><br><span style="font-size:10px;color:rgba(255,255,255,0.4);">Coverage Achieved</span></div>
+          </div>
+        </div>
+        <!-- Coverage chart bottom -->
+        <div style="background:#0c1828;padding:14px;border-top:1px solid rgba(255,255,255,0.05);">
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:8px;font-family:'DM Mono',monospace;">COVERAGE LEVELS</div>
+          <svg viewBox="0 0 600 50" style="width:100%;height:50px;">
+            <defs>
+              <linearGradient id="covGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#3ecf4c" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#3ecf4c" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <polygon points="0,40 50,35 100,28 150,30 200,22 250,25 300,18 350,20 400,15 450,18 500,12 550,15 600,10 600,50 0,50" fill="url(#covGrad)"/>
+            <polyline points="0,40 50,35 100,28 150,30 200,22 250,25 300,18 350,20 400,15 450,18 500,12 550,15 600,10" fill="none" stroke="#3ecf4c" stroke-width="2"/>
+            <!-- Orange area -->
+            <polygon points="200,40 250,38 300,35 350,37 400,33 450,36 200,50" fill="rgba(255,140,0,0.25)"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end fl-page -->
+
+  <!-- ── PLANNER LOGIN MODAL ── -->
+  <div class="fl-modal-overlay" id="modal-planner" onclick="if(event.target===this)closeModal('planner')">
+    <div class="fl-modal">
+      <button class="fl-modal-close" onclick="closeModal('planner')">✕</button>
+      <div class="fl-modal-eyebrow">Planner Portal</div>
+      <h2>Planner Login</h2>
+      <p class="fl-modal-sub">Manage shift allocations · Upload employees · Review bids</p>
+      <div class="login-field"><label>Username</label>
+        <input type="text" id="planner-user" placeholder="planner" onkeydown="if(event.key==='Enter')doLogin('planner')"></div>
+      <div class="login-field"><label>Password</label>
+        <input type="password" id="planner-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin('planner')"></div>
+      <div class="login-error" id="planner-err"></div>
+      <button class="btn-login-planner" onclick="doLogin('planner')">Enter Portal</button>
+      <div class="login-hint">Default: planner / planner123</div>
+    </div>
+  </div>
+
+  <!-- ── STAFF LOGIN MODAL ── -->
+  <div class="fl-modal-overlay" id="modal-staff" onclick="if(event.target===this)closeModal('staff')">
+    <div class="fl-modal">
+      <button class="fl-modal-close" onclick="closeModal('staff')">✕</button>
+      <div class="fl-modal-eyebrow">Employee Portal</div>
+      <h2>Staff Login</h2>
+      <p class="fl-modal-sub">Access your schedule &amp; submit shift bids</p>
+      <div class="login-field"><label>Employee ID</label>
+        <input type="text" id="staff-empid" placeholder="e.g. EMP0001" onkeydown="if(event.key==='Enter')doLogin('staff')"></div>
+      <div class="login-field"><label>Password</label>
+        <input type="password" id="staff-pass" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin('staff')"></div>
+      <div class="login-error" id="staff-err"></div>
+      <button class="btn-login-staff" onclick="doLogin('staff')">Enter Portal</button>
+      <div class="login-hint">Default password: staff123</div>
+    </div>
+  </div>
+
+  <!-- Background network animation + modal helpers -->
+  <script>
+  function openModal(r){document.getElementById('modal-'+r).classList.add('open');}
+  function closeModal(r){document.getElementById('modal-'+r).classList.remove('open');}
+
+  // Network node background
+  (function(){
+    const c=document.getElementById('ls-bg');
+    const ctx=c.getContext('2d');
+    let W,H,nodes=[];
+    function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;init();}
+    function init(){
+      nodes=[];
+      for(let i=0;i<90;i++) nodes.push({
+        x:Math.random()*W, y:Math.random()*H,
+        vx:(Math.random()-0.5)*0.3, vy:(Math.random()-0.5)*0.3,
+        r:Math.random()*1.8+0.5,
+      });
+    }
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      // Draw connecting lines
+      for(let i=0;i<nodes.length;i++){
+        for(let j=i+1;j<nodes.length;j++){
+          const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+          const dist=Math.sqrt(dx*dx+dy*dy);
+          if(dist<130){
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x,nodes[i].y);
+            ctx.lineTo(nodes[j].x,nodes[j].y);
+            ctx.strokeStyle=`rgba(120,180,255,${0.12*(1-dist/130)})`;
+            ctx.lineWidth=0.6;
+            ctx.stroke();
+          }
+        }
+      }
+      // Draw nodes
+      nodes.forEach(n=>{
+        ctx.beginPath();
+        ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+        ctx.fillStyle='rgba(160,210,255,0.55)';
+        ctx.fill();
+        n.x+=n.vx; n.y+=n.vy;
+        if(n.x<0||n.x>W)n.vx*=-1;
+        if(n.y<0||n.y>H)n.vy*=-1;
+      });
+      // Occasional bright green flash node
+      if(Math.random()<0.008){
+        const f=nodes[Math.floor(Math.random()*nodes.length)];
+        ctx.beginPath();ctx.arc(f.x,f.y,3,0,Math.PI*2);
+        ctx.fillStyle='rgba(60,207,76,0.9)';ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    window.addEventListener('resize',resize);
+    resize();draw();
+  })();
+  </script>
+
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="header">
+    <div class="header-icon">🚂</div>
+    <div class="header-text">
+      <h1>Shift Roster System</h1>
+      <p>Generator · Bidding · powered by Ameen</p>
+    </div>
+    <div class="header-right">
+      <span class="header-badge green" id="hdr-emp-count" style="display:none">0 employees</span>
+      <span class="header-badge warn" id="hdr-prev-month" style="display:none">↩ carry-over</span>
+      <div class="user-badge"><div class="user-dot" id="user-dot"></div><span id="user-label">—</span></div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="main">
+    <nav class="sidebar" id="sidebar"></nav>
+    <div class="content" id="content-area"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// SHIFT ROSTER SYSTEM — Refactored JS
+// Improvements applied:
+//   1. Proxy-based state  — every mutation auto-calls saveState()
+//   2. Document fragments — DOM builds done off-screen, single appendChild
+//   3. Constants block    — all magic values in one place
+//   4. Input sanitization — safe text helpers, no raw innerHTML from user data
+//   5. JSDoc on all functions
+//   6. Dead code removed  — unused branches, redundant guards
+//   7. Loading indicators — spinner on generate / process
+//   8. Better error handling — specific errors with user-friendly messages
+// ═══════════════════════════════════════════════════════════════════════════
+
+'use strict';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 1  CONSTANTS  (all magic values live here — change once, applied everywhere)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** @type {{ PLANNER_USER: string, PLANNER_PASS: string, STAFF_PASS: string }} */
+const CREDS = {
+  PLANNER_USER: 'planner',
+  PLANNER_PASS: 'planner123',
+  STAFF_PASS:   'staff123',
+};
+
+/** localStorage keys */
+const LS = {
+  STATE:   'rosterState_v1',
+  ARCHIVE: 'rosterArchive_v3',
+};
+
+/** Month name abbreviations */
+const MN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+/** Day name abbreviations */
+const DN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+/** Block-shift pattern: 5 working days then 2 off */
+const BLOCK = ['WORK','WORK','WORK','WORK','WORK','OFF','OFF'];
+
+/** Maximum employee rows to preview (performance guard) */
+const MAX_EMP_PREVIEW = 300;
+
+/** Node-graph animation: max connection distance in px */
+const NODE_LINK_DIST = 130;
+
+/** Node-graph animation: number of nodes */
+const NODE_COUNT = 90;
+
+/** Department configurations — single source of truth */
+const DEPT_CONFIGS = [
+  {dept:'L3 SAMB',     line:'L3',  position:'SAMB',  headcount:68,  shifts:['E','L']},
+  {dept:'L3-LSS/SS',   line:'L3',  position:'SS',    headcount:89,  shifts:['E','L','N']},
+  {dept:'L3-SA',       line:'L3',  position:'SA',    headcount:172, shifts:['E','L']},
+  {dept:'L3-TA-T',     line:'L3',  position:'OTHER', headcount:156, shifts:['E1','L1','L2','N1']},
+  {dept:'L3-DEP-DC',   line:'L3',  position:'OTHER', headcount:9,   shifts:['E','L','N']},
+  {dept:'L3-DEP-DM',   line:'L3',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L3-DEP-EFC',  line:'L3',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L3-DEP-GSM',  line:'L3',  position:'OTHER', headcount:5,   shifts:['E','L']},
+  {dept:'L3-DEP-SC',   line:'L3',  position:'OTHER', headcount:6,   shifts:['E','L','N']},
+  {dept:'L3-DEP-TC',   line:'L3',  position:'OTHER', headcount:10,  shifts:['E','L','N']},
+  {dept:'L3-P&R',      line:'L3',  position:'OTHER', headcount:40,  shifts:['E','L','N']},
+  {dept:'L3-DS',       line:'L3',  position:'OTHER', headcount:12,  shifts:['E','L','N']},
+  {dept:'L46 SAMB',    line:'L46', position:'SAMB',  headcount:69,  shifts:['E','L']},
+  {dept:'L46-LSS/SS',  line:'L46', position:'SS',    headcount:73,  shifts:['E','L','N']},
+  {dept:'L4/6-SA',     line:'L46', position:'SA',    headcount:116, shifts:['E','L']},
+  {dept:'L46-TA-T',    line:'L46', position:'OTHER', headcount:137, shifts:['E1','L1','L2','N1']},
+  {dept:'L46-AOCC',    line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L46-DEP-DC',  line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L4/6-DEP-DM', line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L4/6-DEP-EFC',line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L46-DEP-GSM', line:'L46', position:'OTHER', headcount:5,   shifts:['E','L']},
+  {dept:'L46-DEP-SC',  line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L46-DEP-TC',  line:'L46', position:'OTHER', headcount:9,   shifts:['E','L','N']},
+  {dept:'L46-P&R',     line:'L46', position:'OTHER', headcount:15,  shifts:['E','L','N']},
+  {dept:'L5 SAMB',     line:'L5',  position:'SAMB',  headcount:27,  shifts:['E','L']},
+  {dept:'L5-LSS/SS',   line:'L5',  position:'SS',    headcount:55,  shifts:['E','L','N']},
+  {dept:'L5 SA',       line:'L5',  position:'SA',    headcount:62,  shifts:['E','L']},
+  {dept:'L5-TA-T',     line:'L5',  position:'OTHER', headcount:55,  shifts:['E1','L1','L2','N1']},
+  {dept:'L5-DEP-DC',   line:'L5',  position:'OTHER', headcount:4,   shifts:['E','L','N']},
+  {dept:'L5-DEP-DM',   line:'L5',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L5-DEP-EFC',  line:'L5',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L5-DEP-GSM',  line:'L5',  position:'OTHER', headcount:4,   shifts:['E','L']},
+  {dept:'L5-DEP-SC',   line:'L5',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
+  {dept:'L5-DEP-TC',   line:'L5',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 2  STATE STORE  (Proxy auto-saves on every top-level mutation)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Raw backing object for state.
+ * Never mutate this directly — always go through the `state` Proxy.
+ */
+const _stateRaw = {
+  year:              new Date().getFullYear(),
+  month:             new Date().getMonth() + 1,
+  monthDates:        [],
+  uploadedEmployees: [],
+  employees:         [],
+  rosters:           [],
+  processedResults:  [],
+  deptIncludes:      {},
+  _pendingArchive:   null,
+};
+
+/**
+ * Reactive state Proxy.
+ * Any assignment to a top-level property triggers an automatic saveState().
+ * Mutations to nested objects (e.g. pushing to state.rosters) still require
+ * an explicit call to `persistState()` since the Proxy only intercepts the
+ * top-level set trap — this is a deliberate simplification.
+ */
+const state = new Proxy(_stateRaw, {
+  set(target, key, value) {
+    target[key] = value;
+    // Defer to avoid cascading saves during multi-property updates
+    scheduleSave();
+    return true;
+  },
+});
+
+/** Debounce timer ID for auto-save */
+let _saveTimer = null;
+
+/** Schedule a deferred save (coalesces rapid mutations) */
+function scheduleSave() {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(persistState, 80);
+}
+
+/**
+ * Manually flush a save immediately (used after atomic operations).
+ * Prefer this at the end of any function that mutates nested state.
+ */
+function persistState() {
+  clearTimeout(_saveTimer);
+  _saveTimer = null;
+  try {
+    // Strip shifts[] from rosters — large and recomputable from _pendingArchive.
+    const rostersSlim = _stateRaw.rosters.map(r => ({
+      rosterNumber:  r.rosterNumber,
+      department:    r.department,
+      line:          r.line,
+      position:      r.position,
+      originalEmpId: r.originalEmpId,
+      status:        r.status,
+      assignedTo:    r.assignedTo,
+      bids:          r.bids,
+    }));
+    const slim = {
+      year:              _stateRaw.year,
+      month:             _stateRaw.month,
+      uploadedEmployees: _stateRaw.uploadedEmployees,
+      rosters:           rostersSlim,
+      _pendingArchive:   _stateRaw._pendingArchive,
+    };
+    localStorage.setItem(LS.STATE, JSON.stringify(slim));
+  } catch (e) {
+    // QuotaExceededError or similar — show non-blocking warning
+    if (e.name === 'QuotaExceededError') {
+      showToast('⚠️ Storage full — older data may not be saved. Clear archive entries to free space.', 'warn');
+    } else {
+      console.warn('[persistState]', e);
+    }
+  }
+}
+
+/**
+ * Hydrate state from localStorage on boot.
+ * Reconstructs derived fields (monthDates, employees, shifts) from stored slim data.
+ */
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS.STATE);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+
+    _stateRaw.year              = s.year  || _stateRaw.year;
+    _stateRaw.month             = s.month || _stateRaw.month;
+    _stateRaw.uploadedEmployees = s.uploadedEmployees || [];
+    _stateRaw._pendingArchive   = s._pendingArchive   || null;
+
+    // Recompute derived fields
+    _stateRaw.monthDates = getMonthDates(_stateRaw.year, _stateRaw.month);
+    _stateRaw.employees  = _stateRaw.uploadedEmployees.map(e => ({ ...e }));
+
+    // Rehydrate shifts[] from pending archive offsets
+    const pa = _stateRaw._pendingArchive;
+    _stateRaw.rosters = (s.rosters || []).map(r => {
+      let shifts = [];
+      if (pa && r.originalEmpId && pa.cycleOffsetByEmpId) {
+        const shiftTypes = getDeptShifts(r.department);
+        const cycle      = buildMasterCycle(shiftTypes);
+        const cLen       = cycle.length;
+        const offset     = pa.cycleOffsetByEmpId[r.originalEmpId];
+        if (offset !== undefined) {
+          shifts = _stateRaw.monthDates.map((d, i) => {
+            const pos = (i + offset) % cLen;
+            return {
+              date:      fmtDate(d),
+              code:      cycle[pos].dayType === 'OFF' ? 'OFF' : cycle[pos].shift,
+              carryOver: false,
+            };
+          });
+        }
+      }
+      if (!shifts.length) {
+        shifts = _stateRaw.monthDates.map(d => ({ date: fmtDate(d), code: '?', carryOver: false }));
+      }
+      return { ...r, shifts };
+    });
+
+    // Rebuild processedResults from assigned/reward rosters
+    _stateRaw.processedResults = _stateRaw.rosters
+      .filter(r => r.assignedTo && (r.status === 'assigned' || r.status === 'reward'))
+      .map(r => ({
+        roster:     r,
+        winner:     r.assignedTo,
+        allBidders: r.bids || [],
+        type:       r.status === 'reward' ? 'reward' : 'bid',
+      }));
+  } catch (e) {
+    console.warn('[loadState]', e);
+    showToast('⚠️ Could not restore previous session. Starting fresh.', 'warn');
+  }
+}
+
+/**
+ * Wipe state from localStorage and reset raw object.
+ */
+function clearState() {
+  try { localStorage.removeItem(LS.STATE); } catch (_) {}
+  _stateRaw.uploadedEmployees = [];
+  _stateRaw.employees         = [];
+  _stateRaw.rosters           = [];
+  _stateRaw.processedResults  = [];
+  _stateRaw.monthDates        = [];
+  _stateRaw._pendingArchive   = null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 3  ARCHIVE HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Load the month archive array from localStorage.
+ * @returns {Array<Object>}
+ */
+function loadArchive() {
+  try { return JSON.parse(localStorage.getItem(LS.ARCHIVE) || '[]'); }
+  catch (_) { return []; }
+}
+
+/**
+ * Persist the archive array to localStorage.
+ * @param {Array<Object>} archive
+ */
+function saveArchive(archive) {
+  try { localStorage.setItem(LS.ARCHIVE, JSON.stringify(archive)); }
+  catch (e) {
+    if (e.name === 'QuotaExceededError') {
+      showToast('⚠️ Archive storage full — delete old months to make room.', 'warn');
+    }
+  }
+}
+
+/**
+ * Build the archive lookup key for a given year/month.
+ * @param {number} year
+ * @param {number} month  1-based
+ * @returns {string}  e.g. "2025-03"
+ */
+function archiveKey(year, month) {
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 4  UTILITY HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Safe getElementById — returns a no-op dummy if element not found,
+ * preventing null-pointer crashes in render paths.
+ * @param {string} id
+ * @returns {HTMLElement}
+ */
+function el(id) {
+  return document.getElementById(id) || { textContent: '', style: {}, innerHTML: '' };
+}
+
+/**
+ * Escape a string for safe insertion into HTML text content.
+ * Use this instead of setting innerHTML with user-supplied data.
+ * @param {string} str
+ * @returns {string}
+ */
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * Set a DOM element's text content safely (no XSS risk).
+ * @param {string} id
+ * @param {string|number} text
+ */
+function setText(id, text) {
+  const node = document.getElementById(id);
+  if (node) node.textContent = String(text ?? '');
+}
+
+/**
+ * Generate all Date objects for a given month.
+ * @param {number} year
+ * @param {number} month  1-based
+ * @returns {Date[]}
+ */
+function getMonthDates(year, month) {
+  const dates = [];
+  const cursor = new Date(year, month - 1, 1);
+  while (cursor.getMonth() === month - 1) {
+    dates.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return dates;
+}
+
+/**
+ * Format a Date as "Mon DD-Mon-YY".
+ * @param {Date} d
+ * @returns {string}
+ */
+function fmtDate(d) {
+  return `${DN[d.getDay()]} ${d.getDate()}-${MN[d.getMonth()]}-${String(d.getFullYear()).slice(2)}`;
+}
+
+/**
+ * Normalise an employee ID to lowercase-trimmed for case-insensitive matching.
+ * @param {string|*} id
+ * @returns {string}
+ */
+function idLo(id) {
+  return String(id ?? '').toLowerCase().trim();
+}
+
+/**
+ * Find an employee by ID (case-insensitive) across both employees and uploadedEmployees.
+ * @param {string} id
+ * @returns {Object|null}
+ */
+function empById(id) {
+  const lo = idLo(id);
+  return (
+    _stateRaw.employees.find(e => idLo(e.id) === lo) ||
+    _stateRaw.uploadedEmployees.find(e => idLo(e.id) === lo) ||
+    null
+  );
+}
+
+/**
+ * Return the shift-type array for a given department name.
+ * Falls back to pattern-matching if not in DEPT_CONFIGS.
+ * @param {string} dept
+ * @returns {string[]}
+ */
+function getDeptShifts(dept) {
+  const cfg = DEPT_CONFIGS.find(x => x.dept.toLowerCase() === dept.toLowerCase());
+  if (cfg) return cfg.shifts;
+  if (/SAMB/i.test(dept))   return ['E', 'L'];
+  if (/TA-T/i.test(dept))   return ['E1', 'L1', 'L2', 'N1'];
+  if (/GSM/i.test(dept))    return ['E', 'L'];
+  if (/\bSA\b/i.test(dept)) return ['E', 'L'];
+  return ['E', 'L', 'N'];
+}
+
+/**
+ * Infer the line code from a department name.
+ * @param {string} dept
+ * @returns {string}
+ */
+function getDeptLine(dept) {
+  if (/L46|L4\//i.test(dept)) return 'L46';
+  if (/L5/i.test(dept))       return 'L5';
+  if (/L3/i.test(dept))       return 'L3';
+  return 'UNKNOWN';
+}
+
+/**
+ * Infer the position type from a department name.
+ * @param {string} dept
+ * @returns {string}
+ */
+function getDeptPosition(dept) {
+  if (/SAMB/i.test(dept))              return 'SAMB';
+  if (/LSS|\/SS/i.test(dept))          return 'SS';
+  if (/\bSA\b/i.test(dept) && !/SAMB/i.test(dept)) return 'SA';
+  return 'OTHER';
+}
+
+/**
+ * Show a non-blocking toast notification.
+ * @param {string} message
+ * @param {'info'|'warn'|'danger'|'success'} [type]
+ */
+function showToast(message, type = 'info') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  const colors = { info: 'var(--accent)', warn: 'var(--warn)', danger: 'var(--danger)', success: 'var(--accent3)' };
+  toast.style.cssText = `
+    padding:12px 18px;border-radius:8px;font-size:13px;max-width:380px;
+    background:var(--surface);border-left:4px solid ${colors[type]};
+    box-shadow:0 4px 20px rgba(0,0,0,0.15);
+    animation:fadeIn 0.2s ease;font-family:'Syne',sans-serif;color:var(--text);
+  `;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
+}
+
+/**
+ * Show/hide a loading spinner overlay on a button.
+ * @param {string} btnId
+ * @param {boolean} loading
+ * @param {string} [label]  Original button label to restore
+ */
+function setLoading(btnId, loading, label = '') {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? '⏳ Working…' : label;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 5  SHIFT GENERATION CORE
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Build the master cycle array for a given shift-type list.
+ * Repeats the 5W/2O block for every shift type in order.
+ * @param {string[]} shifts  e.g. ['E','L','N']
+ * @returns {{ shift: string, dayType: string }[]}
+ */
+function buildMasterCycle(shifts) {
+  const cycle = [];
+  shifts.forEach(s => BLOCK.forEach(dayType => cycle.push({ shift: s, dayType })));
+  return cycle;
+}
+
+/**
+ * Generate a block-shift pattern for a single employee slot.
+ * @param {string} empId
+ * @param {number} localIdx   Position of this employee within their department
+ * @param {number} totalDays  Number of working days in the month
+ * @param {string[]} shifts   Shift types for this department
+ * @param {number} total      Total employees in department (for offset stagger)
+ * @param {Object} carryMap   empId → carry-over offset from previous month
+ * @returns {{ pattern: string[], offset: number }}
+ */
+function generateBlockPattern(empId, localIdx, totalDays, shifts, total, carryMap) {
+  const cycle = buildMasterCycle(shifts);
+  const cLen  = cycle.length;
+  const offset = carryMap[empId] !== undefined
+    ? carryMap[empId]
+    : (total > 0 ? Math.floor((localIdx * cLen) / total) % cLen : 0);
+  const pattern = [];
+  for (let d = 0; d < totalDays; d++) {
+    const slot = cycle[(d + offset) % cLen];
+    pattern.push(slot.dayType === 'OFF' ? 'OFF' : slot.shift);
+  }
+  return { pattern, offset };
+}
+
+/**
+ * Load the carry-over offset map from the previous month's archive entry.
+ * @returns {{ map: Object, entry: Object|null }}
+ */
+function buildCarryMap() {
+  const arch = loadArchive();
+  const y = _stateRaw.year, m = _stateRaw.month;
+  let py = y, pm = m - 1;
+  if (pm === 0) { pm = 12; py = y - 1; }
+  const entry = arch.find(a => a.key === archiveKey(py, pm));
+  const map = {};
+  if (entry) {
+    Object.entries(entry.rostersByEmpId || {}).forEach(([empId, pattern]) => {
+      const dept   = entry.deptByEmpId[empId];
+      const shifts = getDeptShifts(dept || '');
+      const cycle  = buildMasterCycle(shifts);
+      const cLen   = cycle.length;
+      const so     = (entry.cycleOffsetByEmpId || {})[empId] || 0;
+      map[empId]   = ((pattern.length - 1 + so) % cLen + 1) % cLen;
+    });
+  }
+  return { map, entry };
+}
+
+/**
+ * Check for a previous-month archive and show/hide the carry-over banner.
+ */
+function checkCarryOver() {
+  const { entry } = buildCarryMap();
+  const banner = el('carry-banner');
+  const hdr    = el('hdr-prev-month');
+  if (entry) {
+    banner.style.display = 'flex';
+    el('carry-banner-detail').textContent =
+      `Found ${MN[entry.month - 1]} ${entry.year} — ${Object.keys(entry.rostersByEmpId || {}).length} employees carry over.`;
+    hdr.style.display = 'inline';
+  } else {
+    banner.style.display = 'none';
+    hdr.style.display    = 'none';
+  }
+}
+
+/**
+ * Main roster generation function.
+ * Reads form inputs, builds rosters for all employees/departments,
+ * logs progress, saves state, and updates all UI panels.
+ */
+function generateRosters() {
+  const year   = parseInt(el('gen-year').value);
+  const month  = parseInt(el('gen-month').value);
+  const vacPct = parseInt(el('gen-vac').value) / 100;
+
+  if (isNaN(year) || year < 2020 || year > 2035) {
+    showToast('❌ Please enter a valid year (2020–2035).', 'danger');
+    return;
+  }
+  if (isNaN(month) || month < 1 || month > 12) {
+    showToast('❌ Please select a valid month.', 'danger');
+    return;
+  }
+
+  setLoading('btn-generate', true, '⚡ Generate Rosters');
+
+  // Use setTimeout to let browser paint the loading state before heavy work
+  setTimeout(() => {
+    try {
+      _doGenerateRosters(year, month, vacPct);
+    } catch (e) {
+      console.error('[generateRosters]', e);
+      showToast(`❌ Generation failed: ${e.message}`, 'danger');
+    } finally {
+      setLoading('btn-generate', false, '⚡ Generate Rosters');
+    }
+  }, 30);
+}
+
+/**
+ * Internal: performs the actual roster generation after the loading state is painted.
+ * @param {number} year
+ * @param {number} month
+ * @param {number} vacPct  Vacation fraction (0–1)
+ */
+function _doGenerateRosters(year, month, vacPct) {
+  _stateRaw.year        = year;
+  _stateRaw.month       = month;
+  _stateRaw.monthDates  = getMonthDates(year, month);
+  _stateRaw.rosters     = [];
+  _stateRaw.processedResults = [];
+  _stateRaw.employees   = [];
+
+  const logEl = el('gen-log');
+  logEl.style.display = 'block';
+  logEl.textContent   = '';
+
+  /**
+   * Append a line to the generation log.
+   * @param {string} msg
+   */
+  const log = msg => {
+    logEl.textContent += `> ${msg}\n`;
+    logEl.scrollTop    = logEl.scrollHeight;
+  };
+
+  log(`Generating ${MN[month - 1]} ${year} — ${_stateRaw.monthDates.length} days`);
+  const { map: carryMap } = buildCarryMap();
+
+  let rn = 1, totalVac = 0, nonBidCount = 0;
+  const archR = {}, archD = {}, archO = {};
+
+  if (_stateRaw.uploadedEmployees.length > 0) {
+    // ── Upload mode: one roster per uploaded employee ──
+    log(`Upload mode: ${_stateRaw.uploadedEmployees.length} employees`);
+    const byDept = {};
+    _stateRaw.uploadedEmployees.forEach(e => {
+      (byDept[e.department] = byDept[e.department] || []).push(e);
+    });
+
+    Object.entries(byDept).forEach(([dept, emps]) => {
+      const shifts = getDeptShifts(dept);
+      log(`${esc(dept)}: ${emps.length} emps, shifts=[${shifts.join(',')}]`);
+      emps.forEach((emp, li) => {
+        _stateRaw.employees.push({ ...emp });
+        if (!emp.participatesInBidding) nonBidCount++;
+        const { pattern, offset } = generateBlockPattern(
+          emp.id, li, _stateRaw.monthDates.length, shifts, emps.length, carryMap
+        );
+        archR[emp.id] = pattern;
+        archD[emp.id] = dept;
+        archO[emp.id] = offset;
+        _stateRaw.rosters.push({
+          rosterNumber:  rn++,
+          department:    dept,
+          line:          emp.line     || getDeptLine(dept),
+          position:      emp.position || getDeptPosition(dept),
+          shifts:        _stateRaw.monthDates.map((d, i) => ({
+            date: fmtDate(d), code: pattern[i], carryOver: false,
+          })),
+          bids:          [],
+          assignedTo:    null,
+          status:        'available',
+          originalEmpId: emp.id,
+        });
+      });
+    });
+
+  } else {
+    // ── Headcount mode: generate generic employees from DEPT_CONFIGS ──
+    log('Headcount mode');
+    let eid = 1;
+    DEPT_CONFIGS.filter(c => _stateRaw.deptIncludes[c.dept]).forEach(cfg => {
+      const vacCount  = Math.floor(cfg.headcount * vacPct);
+      const vacSet    = new Set();
+      while (vacSet.size < vacCount) vacSet.add(Math.floor(Math.random() * cfg.headcount));
+      totalVac += vacCount;
+
+      for (let i = 0; i < cfg.headcount; i++) {
+        const id  = `EMP${String(eid).padStart(4, '0')}`;
+        const emp = {
+          id, name: `${cfg.dept} Emp ${i + 1}`,
+          department: cfg.dept, line: cfg.line,
+          position: cfg.position, seniority: eid,
+          seniorityRank: eid, participatesInBidding: true,
+        };
+        _stateRaw.employees.push(emp);
+        eid++;
+
+        if (vacSet.has(i)) {
+          _stateRaw.rosters.push({
+            rosterNumber:  rn++, department: cfg.dept,
+            line: cfg.line, position: cfg.position,
+            shifts: _stateRaw.monthDates.map(d => ({ date: fmtDate(d), code: 'VACATION', carryOver: false })),
+            bids: [], assignedTo: null, status: 'vacation', originalEmpId: id,
+          });
+        } else {
+          const ai = i - [...vacSet].filter(v => v < i).length;
+          const { pattern, offset } = generateBlockPattern(
+            id, ai, _stateRaw.monthDates.length, cfg.shifts, cfg.headcount - vacCount, carryMap
+          );
+          archR[id] = pattern; archD[id] = cfg.dept; archO[id] = offset;
+          _stateRaw.rosters.push({
+            rosterNumber:  rn++, department: cfg.dept,
+            line: cfg.line, position: cfg.position,
+            shifts: _stateRaw.monthDates.map((d, i2) => ({
+              date: fmtDate(d), code: pattern[i2], carryOver: false,
+            })),
+            bids: [], assignedTo: null, status: 'available', originalEmpId: id,
+          });
+        }
+      }
+    });
+  }
+
+  _stateRaw._pendingArchive = {
+    key: archiveKey(year, month), year, month,
+    rostersByEmpId:     archR,
+    deptByEmpId:        archD,
+    cycleOffsetByEmpId: archO,
+    generatedAt:        new Date().toISOString(),
+  };
+
+  log(`✓ ${_stateRaw.rosters.length} rosters, ${_stateRaw.employees.length} employees, ${nonBidCount} non-bidders`);
+  persistState();
+
+  // Update UI
+  setText('gs-rosters', _stateRaw.rosters.length);
+  setText('gs-emps',    _stateRaw.employees.length);
+  setText('gs-vac',     totalVac || _stateRaw.rosters.filter(r => r.status === 'vacation').length);
+  setText('gs-days',    _stateRaw.monthDates.length);
+  setText('gs-depts',   new Set(_stateRaw.rosters.map(r => r.department)).size);
+  setText('gs-nonbid',  nonBidCount);
+
+  el('gen-stats').style.display  = 'block';
+  el('gen-status').textContent   = `✓ ${_stateRaw.rosters.length} rosters generated`;
+  setText('nav-rosters-count', _stateRaw.rosters.length);
+
+  populateBrowseFilters();
+  updateProcessStats();
+  renderBrowse();
+  showToast(`✅ ${_stateRaw.rosters.length} rosters generated for ${MN[month - 1]} ${year}`, 'success');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 6  BROWSE PANEL
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Populate the department filter dropdown from current roster data.
+ */
+function populateBrowseFilters() {
+  const sel = document.getElementById('bid-dept-filter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">All Departments</option>';
+  const depts = [...new Set(_stateRaw.rosters.map(r => r.department))].sort();
+  const frag  = document.createDocumentFragment();
+  depts.forEach(d => {
+    const o = document.createElement('option');
+    o.value       = d;
+    o.textContent = d;
+    frag.appendChild(o);
+  });
+  sel.appendChild(frag);
+}
+
+/**
+ * Render the roster card grid for the Browse panel.
+ * Uses a DocumentFragment so DOM is updated in a single operation.
+ */
+function renderBrowse() {
+  const grid  = document.getElementById('browse-grid');
+  if (!grid) return;
+  const deptF = (document.getElementById('bid-dept-filter') || {}).value || '';
+  let visible = _stateRaw.rosters.filter(r => r.status !== 'vacation');
+  if (deptF) visible = visible.filter(r => r.department === deptF);
+
+  if (!_stateRaw.rosters.length) {
+    grid.innerHTML = '<div class="alert alert-warn" style="grid-column:1/-1">⚠️ Generate rosters first.</div>';
+    return;
+  }
+  if (!visible.length) {
+    grid.innerHTML = '<div class="alert alert-info" style="grid-column:1/-1">No rosters match the current filter.</div>';
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  visible.forEach(roster => frag.appendChild(buildRosterCard(roster, false)));
+  grid.innerHTML = '';
+  grid.appendChild(frag);
+}
+
+/**
+ * Build a single roster card DOM element.
+ * @param {Object} roster
+ * @param {boolean} interactive  If true, clicking toggles a staff bid
+ * @returns {HTMLElement}
+ */
+function buildRosterCard(roster, interactive) {
+  const isA = roster.status === 'assigned';
+  const isR = roster.status === 'reward';
+  const emp = interactive ? empById(currentUser?.empId) : null;
+  const hasBid = emp ? roster.bids.some(b => idLo(b.empId) === idLo(emp.id)) : false;
+  const locked = isA || isR;
+
+  const card = document.createElement('div');
+  let cls = 'roster-card';
+  if (interactive) {
+    if (hasBid)  cls += ' selected';
+    if (locked)  cls += ' assigned';
+  } else {
+    if (isA) cls += ' assigned';
+    if (isR) cls += ' reward';
+  }
+  card.className = cls;
+
+  if (interactive && !locked) {
+    card.onclick = () => staffToggleBid(roster.rosterNumber);
+  }
+
+  // Build shift strip using DocumentFragment
+  const strip = document.createElement('div');
+  strip.className = 'shift-strip';
+  const stripFrag = document.createDocumentFragment();
+  roster.shifts.forEach(s => {
+    const cell = document.createElement('div');
+    const isOff = s.code === 'OFF';
+    const isVac = s.code === 'VACATION';
+    cell.className = `shift-cell ${isOff ? 'cell-OFF' : isVac ? 'cell-VAC' : `cell-${s.code}`}`;
+    cell.title     = `${s.date}: ${s.code}`;
+    // Use textContent — never innerHTML — for shift code labels
+    cell.textContent = isVac ? 'V' : isOff ? '·' : s.code.replace(/\d/g, '');
+    stripFrag.appendChild(cell);
+  });
+  strip.appendChild(stripFrag);
+
+  // Header
+  const hdr  = document.createElement('div');
+  hdr.className = 'roster-card-header';
+  const num  = document.createElement('div');
+  num.className = 'roster-num';
+  num.textContent = `#${roster.rosterNumber}`;
+  const badge = document.createElement('div');
+  badge.className  = 'roster-dept-badge';
+  badge.textContent = roster.department;  // textContent — safe
+  hdr.appendChild(num);
+  hdr.appendChild(badge);
+
+  // Footer
+  const footer  = document.createElement('div');
+  footer.className = 'roster-card-footer';
+  const bidLabel = document.createElement('span');
+  bidLabel.className = 'bid-label';
+  if (interactive) {
+    bidLabel.textContent = hasBid ? '✅ Bid placed' : locked ? '🔒 Assigned' : '🖱 Click to bid';
+  } else {
+    bidLabel.textContent = isA ? `🏆 ${roster.assignedTo?.empName || ''}` :
+                           isR ? `🎁 ${roster.assignedTo?.empName || ''}` :
+                           `${roster.bids.length} bid(s)`;
+  }
+  const bidBadge = document.createElement('span');
+  bidBadge.className  = 'bid-count-badge';
+  bidBadge.textContent = `${roster.bids.length} bid(s)`;
+  footer.appendChild(bidLabel);
+  footer.appendChild(bidBadge);
+
+  card.appendChild(hdr);
+  card.appendChild(strip);
+  card.appendChild(footer);
+  return card;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 7  FILE UPLOAD & COLUMN MAPPING
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Raw parsed rows from the last uploaded file */
+let _rawFileRows = [];
+
+/**
+ * Handle drag-and-drop file onto the upload zone.
+ * @param {DragEvent} e
+ */
+function handleUploadDrop(e) {
+  e.preventDefault();
+  el('upload-zone').classList.remove('drag-over');
+  const f = e.dataTransfer?.files[0];
+  if (f) handleEmpFile(f);
+}
+
+/**
+ * Read and parse an uploaded employee file (CSV or XLSX).
+ * Validates type and size before processing.
+ * @param {File} file
+ */
+function handleEmpFile(file) {
+  if (!file) return;
+  const rd    = el('upload-result');
+  const isCSV = file.name.toLowerCase().endsWith('.csv');
+  const isXLS = /\.(xlsx?|xls)$/i.test(file.name);
+
+  if (!isCSV && !isXLS) {
+    rd.innerHTML = '<div class="alert alert-danger">❌ Unsupported file type. Please upload a .csv, .xlsx, or .xls file.</div>';
+    return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    rd.innerHTML = '<div class="alert alert-danger">❌ File too large (max 20 MB). Please split the file and try again.</div>';
+    return;
+  }
+
+  rd.innerHTML = '<div class="alert alert-info">📂 Reading file…</div>';
+  el('col-mapper').style.display  = 'none';
+  el('emp-preview').style.display = 'none';
+
+  const reader = new FileReader();
+
+  reader.onerror = () => {
+    rd.innerHTML = '<div class="alert alert-danger">❌ File could not be read. The file may be corrupted or locked by another application.</div>';
+  };
+
+  reader.onload = ev => {
+    try {
+      let rows;
+      if (isCSV) {
+        rows = parseCSVRobust(ev.target.result);
+      } else {
+        const u8 = new Uint8Array(ev.target.result);
+        let wb = null;
+        // Try multiple XLSX parse strategies for maximum compatibility
+        for (const fn of [
+          () => XLSX.read(u8, { type: 'array', raw: true }),
+          () => XLSX.read(u8, { type: 'array', raw: false }),
+          () => XLSX.read(u8, { type: 'array' }),
+        ]) {
+          try { wb = fn(); if (wb) break; } catch (_) {}
+        }
+        if (!wb) throw new Error('Cannot parse this Excel file. Try saving it as CSV and uploading again.');
+        let best = [];
+        wb.SheetNames.forEach(sn => {
+          try {
+            const ws = wb.Sheets[sn];
+            if (!ws || !ws['!ref']) return;
+            const r = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false, blankrows: false });
+            const ne = r.filter(row => row.some(c => String(c || '').trim()));
+            if (ne.length > best.length) best = ne;
+          } catch (_) {}
+        });
+        rows = best;
+      }
+
+      rows = (rows || []).filter(r => r && r.some(c => String(c || '').trim()));
+
+      if (rows.length < 2) {
+        rd.innerHTML = `<div class="alert alert-danger">❌ File appears empty (${rows.length} rows found). Check that the file has a header row and at least one data row.</div>`;
+        return;
+      }
+
+      _rawFileRows = rows;
+      rd.innerHTML = `<div class="alert alert-success">✅ File read: <strong>${rows.length - 1}</strong> data rows · <strong>${rows[0].length}</strong> columns</div>`;
+      const autoMap = autoDetectCols(rows[0]);
+      populateMapper(rows, autoMap);
+
+      if (autoMap.id >= 0 && autoMap.name >= 0 && autoMap.dept >= 0) {
+        rd.innerHTML += '<div class="alert alert-info" style="margin-top:8px">🔍 Columns auto-detected — review then click <strong>Apply Mapping</strong>.</div>';
+      } else {
+        rd.innerHTML += '<div class="alert alert-warn" style="margin-top:8px">⚠️ Could not auto-detect all columns — please map them manually below.</div>';
+      }
+    } catch (err) {
+      console.error('[handleEmpFile]', err);
+      rd.innerHTML = `<div class="alert alert-danger">❌ ${esc(err.message)}</div>`;
+    }
+  };
+
+  if (isCSV) reader.readAsText(file, 'UTF-8');
+  else        reader.readAsArrayBuffer(file);
+}
+
+/**
+ * Robust CSV parser supporting quoted fields, embedded commas, and CRLF.
+ * @param {string} text
+ * @returns {string[][]}
+ */
+function parseCSVRobust(text) {
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const rows = [];
+  let cur = [], cell = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') {
+      if (inQ && text[i + 1] === '"') { cell += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === ',' && !inQ) {
+      cur.push(cell.trim()); cell = '';
+    } else if (c === '\n' && !inQ) {
+      cur.push(cell.trim()); rows.push(cur); cur = []; cell = '';
+    } else {
+      cell += c;
+    }
+  }
+  if (cell || cur.length) { cur.push(cell.trim()); rows.push(cur); }
+  return rows;
+}
+
+/**
+ * Auto-detect column indices from a header row.
+ * @param {string[]} header
+ * @returns {{ id: number, name: number, dept: number, pos: number, line: number, bid: number }}
+ */
+function autoDetectCols(header) {
+  const norm = s => String(s || '').toLowerCase().replace(/[\s_\-\.\/\(\)#]/g, '');
+  const hh   = header.map(norm);
+  const m    = { id: -1, name: -1, dept: -1, pos: -1, line: -1, bid: -1 };
+  const kw   = {
+    id:   ['employeeid','empid','staffid','employeenumber','empno','staffno','personnelid','id','number','no','serial'],
+    name: ['employeename','fullname','staffname','empname','name','employee'],
+    dept: ['department','dept','section','group','deptname','division'],
+    pos:  ['position','role','jobtitle','pos','rank'],
+    line: ['line','lineno','linename','linecode'],
+    bid:  ['participatesinbidding','bidding','participates','bid','eligible'],
+  };
+  Object.entries(kw).forEach(([field, keys]) => {
+    for (const k of keys) {
+      const i = hh.findIndex(c => c === k || c.startsWith(k));
+      if (i >= 0) { m[field] = i; break; }
+    }
+  });
+  return m;
+}
+
+/**
+ * Populate the column-mapping UI after a file is parsed.
+ * @param {string[][]} rows
+ * @param {Object} autoMap
+ */
+function populateMapper(rows, autoMap) {
+  const headers = rows[0];
+
+  // Header preview — use textContent for the label parts
+  const preview = el('raw-headers-preview');
+  preview.textContent = 'Columns: ';
+  headers.forEach((h, i) => {
+    const span = document.createElement('span');
+    span.style.color    = 'var(--accent)';
+    span.textContent    = `[${i}] `;
+    const txt = document.createTextNode(`${h}  `);
+    preview.appendChild(span);
+    preview.appendChild(txt);
+  });
+
+  ['map-id','map-name','map-dept','map-pos','map-line','map-bid'].forEach((sid, fi) => {
+    const fields    = ['id','name','dept','pos','line','bid'];
+    const optionals = ['map-pos','map-line','map-bid'];
+    const sel = el(sid);
+    sel.innerHTML = optionals.includes(sid)
+      ? '<option value="-1">— skip —</option>'
+      : '<option value="">— select —</option>';
+    const frag = document.createDocumentFragment();
+    headers.forEach((h, idx) => {
+      const o = document.createElement('option');
+      o.value       = idx;
+      o.textContent = `[${idx}] ${h}`;  // textContent — safe
+      frag.appendChild(o);
+    });
+    sel.appendChild(frag);
+    if (autoMap[fields[fi]] >= 0) sel.value = autoMap[fields[fi]];
+  });
+
+  // Raw data preview table (first 5 rows) using DocumentFragment
+  const tbl = el('raw-preview-table');
+  const thead = document.createElement('thead');
+  const hr    = document.createElement('tr');
+  headers.forEach((h, i) => {
+    const th = document.createElement('th');
+    th.textContent = `[${i}] ${h}`;
+    hr.appendChild(th);
+  });
+  thead.appendChild(hr);
+  const tbody = document.createElement('tbody');
+  rows.slice(1, 6).forEach(row => {
+    const tr = document.createElement('tr');
+    row.forEach(c => {
+      const td = document.createElement('td');
+      td.textContent = c ?? '';  // textContent — safe
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.innerHTML = '';
+  tbl.appendChild(thead);
+  tbl.appendChild(tbody);
+
+  el('col-mapper').style.display = 'block';
+  el('mapper-status').textContent = `Auto-detected: ${Object.values(autoMap).filter(v => v >= 0).length}/6 fields`;
+}
+
+/**
+ * Apply the user's column mapping and load employees into state.
+ * Validates required fields, sanitizes strings, sorts by seniority.
+ */
+function applyColumnMapping() {
+  const gv = id => {
+    const s = el(id);
+    if (!s || s.value === '' || s.value === null) return -1;
+    const v = parseInt(s.value);
+    return isNaN(v) ? -1 : v;
+  };
+
+  const idC = gv('map-id'),  nmC = gv('map-name'), dpC = gv('map-dept');
+  const psC = gv('map-pos'), lnC = gv('map-line'),  bdC = gv('map-bid');
+  const st  = el('mapper-status');
+
+  if (idC < 0) { st.textContent = '❌ Employee ID column is required'; st.style.color = 'var(--danger)'; return; }
+  if (nmC < 0) { st.textContent = '❌ Name column is required';        st.style.color = 'var(--danger)'; return; }
+  if (dpC < 0) { st.textContent = '❌ Department column is required';   st.style.color = 'var(--danger)'; return; }
+
+  const employees = [];
+  let skipped = 0;
+
+  for (let i = 1; i < _rawFileRows.length; i++) {
+    const row = _rawFileRows[i];
+    if (!row) continue;
+    const ri = row[idC], rn = row[nmC], rd = row[dpC];
+    if (!ri || !String(ri).trim() || !rn || !String(rn).trim() || !rd || !String(rd).trim()) {
+      skipped++;
+      continue;
+    }
+    const dept = String(rd).trim();
+    employees.push({
+      id:                   String(ri).trim(),
+      name:                 String(rn).trim(),
+      department:           dept,
+      position:             psC >= 0 && row[psC] != null ? String(row[psC]).trim() : getDeptPosition(dept),
+      line:                 lnC >= 0 && row[lnC] != null ? String(row[lnC]).trim() : getDeptLine(dept),
+      participatesInBidding: bdC >= 0 && row[bdC] != null
+        ? !['no','n','false','0','لا'].includes(String(row[bdC]).trim().toLowerCase())
+        : true,
+      seniority: i,
+    });
+  }
+
+  if (!employees.length) {
+    st.textContent = `❌ No valid rows found (${skipped} skipped). Check that required columns contain data.`;
+    st.style.color = 'var(--danger)';
+    return;
+  }
+
+  // Sort by numeric portion of ID for seniority
+  employees.forEach(e => {
+    const n = parseInt(String(e.id).replace(/\D/g, ''));
+    if (!isNaN(n) && n > 0) e.seniority = n;
+  });
+  employees.sort((a, b) => a.seniority - b.seniority);
+  employees.forEach((e, i) => { e.seniorityRank = i + 1; });
+
+  state.uploadedEmployees = employees;
+  persistState();
+
+  const nb    = employees.filter(e => !e.participatesInBidding).length;
+  const depts = [...new Set(employees.map(e => e.department))].length;
+
+  el('upload-result').innerHTML =
+    `<div class="alert alert-success">✅ <strong>${employees.length}</strong> employees loaded · ` +
+    `<strong>${depts}</strong> departments · Non-bidders: <strong>${nb}</strong>` +
+    `${skipped ? ` · Skipped: ${skipped}` : ''}<br>` +
+    `<small style="opacity:0.7">✔ Saved — staff can log in and see rosters after generation.</small></div>`;
+
+  renderEmpPreview(employees);
+  setText('nav-emp-count',    employees.length);
+  setText('hdr-emp-count',    `${employees.length} employees`);
+  el('hdr-emp-count').style.display = 'inline';
+  el('col-mapper').style.display    = 'none';
+
+  st.textContent = `✅ ${employees.length} loaded`;
+  st.style.color = 'var(--accent3)';
+}
+
+/**
+ * Render the employee preview table (capped at MAX_EMP_PREVIEW rows).
+ * Uses DocumentFragment for performance.
+ * @param {Object[]} employees
+ */
+function renderEmpPreview(employees) {
+  el('emp-preview').style.display = 'block';
+  el('emp-preview-count').textContent = `(${employees.length})`;
+  const tbody = el('emp-preview-tbody');
+  const frag  = document.createDocumentFragment();
+
+  employees.slice(0, MAX_EMP_PREVIEW).forEach((e, i) => {
+    const tr = document.createElement('tr');
+
+    const cells = [
+      { text: String(i + 1),  style: 'color:var(--text3)' },
+      { text: e.id,            style: "color:var(--accent);font-family:'DM Mono',monospace;font-weight:700" },
+      { text: e.name,          style: '' },
+      { text: e.department,    style: '' },
+      { text: e.position,      style: '' },
+      { text: e.line,          style: '' },
+    ];
+    cells.forEach(({ text, style }) => {
+      const td = document.createElement('td');
+      td.textContent = text;          // always textContent — never innerHTML
+      if (style) td.style.cssText = style;
+      tr.appendChild(td);
+    });
+
+    // Bidding indicator
+    const bidTd = document.createElement('td');
+    const bidSpan = document.createElement('span');
+    bidSpan.style.color  = e.participatesInBidding ? 'var(--accent3)' : 'var(--warn)';
+    bidSpan.textContent  = e.participatesInBidding ? '✅ Yes' : '🚫 No';
+    bidTd.appendChild(bidSpan);
+    tr.appendChild(bidTd);
+    frag.appendChild(tr);
+  });
+
+  if (employees.length > MAX_EMP_PREVIEW) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan     = 7;
+    td.textContent = `…and ${employees.length - MAX_EMP_PREVIEW} more`;
+    td.style.cssText = 'text-align:center;color:var(--text3);padding:10px';
+    tr.appendChild(td);
+    frag.appendChild(tr);
+  }
+
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 8  STAFF PORTAL
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Render the staff bid portal for the current logged-in employee.
+ * Shows welcome card, active bids, shift legend, and roster grid.
+ */
+function renderStaffBid() {
+  if (!currentUser || currentUser.role !== 'staff') return;
+  const container = document.getElementById('staff-bid-content');
+  if (!container) return;
+
+  if (!_stateRaw.rosters.length) {
+    container.innerHTML =
+      `<div class="alert alert-warn" style="margin-top:24px">
+        ⚠️ No rosters available yet. The planner needs to generate rosters first.
+        <br><small style="margin-top:4px;display:block;opacity:0.7">Logged in as: <strong>${esc(currentUser.empId)}</strong></small>
+      </div>`;
+    return;
+  }
+
+  const emp = empById(currentUser.empId);
+  if (!emp) {
+    container.innerHTML =
+      `<div class="alert alert-danger" style="margin-top:24px">
+        ❌ Employee ID <strong>${esc(currentUser.empId)}</strong> was not found in the system.
+        <br><small style="margin-top:4px;display:block;opacity:0.7">Contact your planner and confirm your ID matches what was uploaded.</small>
+      </div>`;
+    return;
+  }
+
+  const myRosters = _stateRaw.rosters.filter(r => r.department === emp.department && r.status !== 'vacation');
+  const myBids    = _stateRaw.rosters.filter(r => r.bids.some(b => idLo(b.empId) === idLo(emp.id)));
+  const myWon     = _stateRaw.rosters.find(r => r.assignedTo && idLo(r.assignedTo.empId) === idLo(emp.id));
+
+  // Build content using DOM (no user data in innerHTML)
+  const frag = document.createDocumentFragment();
+
+  // Welcome card
+  const welcome = document.createElement('div');
+  welcome.className = 'staff-welcome';
+  const avatar = document.createElement('div');
+  avatar.className   = 'staff-avatar';
+  avatar.textContent = '👤';
+  const info = document.createElement('div');
+  const h2   = document.createElement('h2');
+  h2.textContent = emp.name;
+  const p1 = document.createElement('p');
+  const idSpan = document.createElement('strong');
+  idSpan.style.color  = 'var(--accent)';
+  idSpan.textContent  = emp.id;
+  p1.appendChild(idSpan);
+  p1.appendChild(document.createTextNode(` · ${emp.department} · Seniority: `));
+  const rankSpan = document.createElement('strong');
+  rankSpan.textContent = `#${emp.seniorityRank}`;
+  p1.appendChild(rankSpan);
+  const p2 = document.createElement('p');
+  p2.style.cssText  = 'margin-top:3px;font-size:12px;color:var(--text3)';
+  p2.textContent    = `${MN[_stateRaw.month - 1]} ${_stateRaw.year} — ${_stateRaw.monthDates.length} days`;
+  info.appendChild(h2);
+  info.appendChild(p1);
+  info.appendChild(p2);
+  welcome.appendChild(avatar);
+  welcome.appendChild(info);
+  frag.appendChild(welcome);
+
+  // Assignment result banner
+  if (myWon) {
+    const alert = document.createElement('div');
+    alert.className  = 'alert alert-success';
+    alert.textContent = `${myWon.status === 'reward' ? '🎁 Reward allocation' : '🏆 Bid winner'} — you are assigned Roster #${myWon.rosterNumber}`;
+    frag.appendChild(alert);
+  }
+
+  // Active bids panel
+  if (myBids.length) {
+    const bidsPanel = document.createElement('div');
+    bidsPanel.className = 'my-bids-panel';
+    const bidsTitle = document.createElement('h3');
+    bidsTitle.textContent = `✓ Your Bids (${myBids.length})`;
+    bidsPanel.appendChild(bidsTitle);
+    myBids.forEach(r => {
+      const chip = document.createElement('span');
+      chip.className  = 'bid-chip';
+      chip.textContent = `📋 #${r.rosterNumber}`;
+      bidsPanel.appendChild(chip);
+    });
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'btn btn-ghost btn-sm';
+    clearBtn.style.marginLeft = '8px';
+    clearBtn.textContent = 'Clear All';
+    clearBtn.onclick = clearMyBids;
+    bidsPanel.appendChild(clearBtn);
+    frag.appendChild(bidsPanel);
+  }
+
+  // Shift legend
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  [['#ff7043','Early'],['#42a5f5','Late'],['#ab47bc','Night'],['#607d8b','OFF']].forEach(([color, label]) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    const dot  = document.createElement('div');
+    dot.className  = 'legend-dot';
+    dot.style.background = color;
+    const txt  = document.createTextNode(label);
+    item.appendChild(dot);
+    item.appendChild(txt);
+    legend.appendChild(item);
+  });
+  frag.appendChild(legend);
+
+  // No-roster notice
+  if (!myRosters.length) {
+    const warn = document.createElement('div');
+    warn.className  = 'alert alert-warn';
+    warn.textContent = `No rosters found for your department (${emp.department}). Contact your planner.`;
+    frag.appendChild(warn);
+  } else {
+    const note = document.createElement('p');
+    note.style.cssText = 'font-size:13px;color:var(--text2);margin-bottom:12px';
+    note.textContent   = `${myRosters.length} roster(s) in your department — click to bid or remove bid.`;
+    frag.appendChild(note);
+  }
+
+  // Roster grid
+  const grid = document.createElement('div');
+  grid.id        = 'staff-roster-grid';
+  grid.className = 'roster-grid';
+  const gridFrag = document.createDocumentFragment();
+  myRosters.forEach(roster => gridFrag.appendChild(buildRosterCard(roster, true)));
+  grid.appendChild(gridFrag);
+  frag.appendChild(grid);
+
+  container.innerHTML = '';
+  container.appendChild(frag);
+}
+
+/**
+ * Toggle a staff bid on a specific roster.
+ * @param {number} rosterNumber
+ */
+function staffToggleBid(rosterNumber) {
+  const emp    = empById(currentUser?.empId);
+  if (!emp) return;
+  const roster = _stateRaw.rosters.find(r => r.rosterNumber === rosterNumber);
+  if (!roster || roster.status === 'assigned' || roster.status === 'reward') return;
+
+  const idx = roster.bids.findIndex(b => idLo(b.empId) === idLo(emp.id));
+  if (idx >= 0) {
+    roster.bids.splice(idx, 1);
+  } else {
+    roster.bids.push({
+      empId: emp.id, empName: emp.name,
+      seniority: emp.seniorityRank, department: emp.department,
+    });
+    roster.bids.sort((a, b) => a.seniority - b.seniority);
+  }
+  persistState();
+  renderStaffBid();
+}
+
+/**
+ * Remove all bids placed by the current staff user.
+ */
+function clearMyBids() {
+  const emp = empById(currentUser?.empId);
+  if (!emp) return;
+  _stateRaw.rosters.forEach(r => {
+    const i = r.bids.findIndex(b => idLo(b.empId) === idLo(emp.id));
+    if (i >= 0) r.bids.splice(i, 1);
+  });
+  persistState();
+  renderStaffBid();
+}
+
+/**
+ * Render the "My Results" panel for the current staff user.
+ */
+function renderStaffResults() {
+  if (!currentUser || currentUser.role !== 'staff') return;
+  const container = document.getElementById('staff-results-content');
+  if (!container) return;
+
+  const emp = empById(currentUser.empId);
+  if (!emp) {
+    container.innerHTML = '<div class="alert alert-warn" style="margin-top:24px">Employee not found. Contact your planner.</div>';
+    return;
+  }
+
+  const won = _stateRaw.rosters.find(r => r.assignedTo && idLo(r.assignedTo.empId) === idLo(emp.id));
+  const frag = document.createDocumentFragment();
+
+  // Header
+  const welcome = document.createElement('div');
+  welcome.className = 'staff-welcome';
+  const avatar = document.createElement('div');
+  avatar.className   = 'staff-avatar';
+  avatar.textContent = '🏆';
+  const info = document.createElement('div');
+  const h2   = document.createElement('h2');
+  h2.textContent = 'My Assignment';
+  const p   = document.createElement('p');
+  p.textContent = `${emp.name} · ${emp.id} · ${emp.department}`;
+  info.appendChild(h2);
+  info.appendChild(p);
+  welcome.appendChild(avatar);
+  welcome.appendChild(info);
+  frag.appendChild(welcome);
+
+  if (!won) {
+    const alert = document.createElement('div');
+    alert.className  = 'alert alert-info';
+    alert.textContent = 'No assignment yet. Wait for the planner to process bids.';
+    frag.appendChild(alert);
+  } else {
+    const banner = document.createElement('div');
+    banner.className  = 'alert alert-success';
+    banner.textContent = `${won.status === 'reward' ? '🎁 Reward Allocation' : '🏆 Bid Winner'} — Roster #${won.rosterNumber}`;
+    frag.appendChild(banner);
+
+    // Shift schedule card
+    const card = document.createElement('div');
+    card.className = 'card';
+    const title = document.createElement('div');
+    title.className  = 'card-title';
+    title.textContent = `Your Shift Schedule — ${MN[_stateRaw.month - 1]} ${_stateRaw.year}`;
+    card.appendChild(title);
+
+    const tableWrap = document.createElement('div');
+    tableWrap.style.overflowX = 'auto';
+    const table = document.createElement('table');
+    table.className = 'data-table';
+    const thead = document.createElement('thead');
+    const hr    = document.createElement('tr');
+    ['Date','Shift'].forEach(h => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    const tbody  = document.createElement('tbody');
+    const tbFrag = document.createDocumentFragment();
+    won.shifts.forEach(s => {
+      const tr   = document.createElement('tr');
+      const dateTd = document.createElement('td');
+      dateTd.textContent = s.date;
+      const shiftTd = document.createElement('td');
+      const span = document.createElement('strong');
+      const color = s.code === 'OFF'          ? 'var(--text3)'  :
+                    s.code.startsWith('E')    ? '#ff7043'       :
+                    s.code.startsWith('L')    ? '#42a5f5'       :
+                    s.code.startsWith('N')    ? '#ab47bc'       : 'var(--text)';
+      span.style.color  = color;
+      span.textContent  = s.code;
+      shiftTd.appendChild(span);
+      tr.appendChild(dateTd);
+      tr.appendChild(shiftTd);
+      tbFrag.appendChild(tr);
+    });
+    tbody.appendChild(tbFrag);
+    table.appendChild(tbody);
+    tableWrap.appendChild(table);
+    card.appendChild(tableWrap);
+    frag.appendChild(card);
+  }
+
+  container.innerHTML = '';
+  container.appendChild(frag);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 9  PROCESS BIDS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Refresh the process-bids stats panel and bids-review table.
+ * Uses a DocumentFragment for the table rows.
+ */
+function updateProcessStats() {
+  const nonVac    = _stateRaw.rosters.filter(r => r.status !== 'vacation');
+  const totalBids = _stateRaw.rosters.reduce((s, r) => s + r.bids.length, 0);
+  const bidderIds = new Set(_stateRaw.rosters.flatMap(r => r.bids.map(b => idLo(b.empId))));
+
+  setText('proc-total',      nonVac.length);
+  setText('proc-with-bids',  nonVac.filter(r => r.bids.length > 0).length);
+  setText('proc-bid-count',  totalBids);
+  setText('proc-bidders',    bidderIds.size);
+  setText('proc-nonbid',     _stateRaw.employees.filter(e => !bidderIds.has(idLo(e.id))).length);
+
+  const tbody  = document.getElementById('proc-tbody');
+  if (!tbody) return;
+  const bidded = _stateRaw.rosters.filter(r => r.bids.length > 0);
+
+  if (!bidded.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:22px;color:var(--text3)">No bids placed yet.</td></tr>';
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  bidded.forEach(r => {
+    const row = document.createElement('tr');
+
+    const numTd  = document.createElement('td');
+    const numSpan = document.createElement('strong');
+    numSpan.style.color  = 'var(--accent)';
+    numSpan.textContent  = `#${r.rosterNumber}`;
+    numTd.appendChild(numSpan);
+
+    const deptTd = document.createElement('td');
+    deptTd.textContent = r.department;
+
+    const biddersTd = document.createElement('td');
+    r.bids.forEach((b, i) => {
+      const e2   = empById(b.empId);
+      const chip = document.createElement('span');
+      chip.style.cssText = `display:inline-block;margin:2px 4px;padding:3px 8px;
+        background:${i === 0 ? 'rgba(52,211,153,0.12)' : 'var(--surface2)'};
+        border-radius:5px;font-size:12px;font-family:'DM Mono',monospace`;
+      chip.textContent   = `${i === 0 ? '🏆 ' : ''}${b.empName} #${e2 ? e2.seniorityRank : b.seniority}`;
+      biddersTd.appendChild(chip);
+    });
+
+    const countTd = document.createElement('td');
+    const bold    = document.createElement('strong');
+    bold.textContent = r.bids.length;
+    countTd.appendChild(bold);
+
+    row.appendChild(numTd);
+    row.appendChild(deptTd);
+    row.appendChild(biddersTd);
+    row.appendChild(countTd);
+    frag.appendChild(row);
+  });
+
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+/**
+ * Run the full bid-processing algorithm:
+ *  1. Assign bidders by seniority (most senior wins their top available choice).
+ *  2. Auto-assign non-bidders to leftover rosters as rewards.
+ *  3. Rebuild and auto-save the carry-over archive entry.
+ */
+function processAllBids() {
+  if (!_stateRaw.rosters.length) {
+    showToast('⚠️ Generate rosters before processing bids.', 'warn');
+    return;
+  }
+  if (!_stateRaw.employees.length) {
+    showToast('⚠️ No employees loaded. Upload employees and generate rosters first.', 'warn');
+    return;
+  }
+
+  setLoading('btn-process', true, '🎯 Process All Bids');
+
+  setTimeout(() => {
+    try {
+      _doProcessBids();
+    } catch (e) {
+      console.error('[processAllBids]', e);
+      showToast(`❌ Processing failed: ${e.message}`, 'danger');
+    } finally {
+      setLoading('btn-process', false, '🎯 Process All Bids');
+    }
+  }, 30);
+}
+
+/**
+ * Internal: performs the bid-processing logic after the loading state is painted.
+ */
+function _doProcessBids() {
+  // Reset all assignments
+  _stateRaw.rosters.forEach(r => {
+    r.assignedTo = null;
+    if (r.status !== 'vacation') r.status = 'available';
+  });
+  _stateRaw.processedResults = [];
+  const doneIds = new Set(); // lowercase empIds already assigned
+
+  // Build bidMap: lowercased empId → rosterNumbers they bid on
+  const bidMap = {};
+  _stateRaw.rosters.forEach(r => {
+    r.bids.forEach(b => {
+      const lo = idLo(b.empId);
+      (bidMap[lo] = bidMap[lo] || []).push(r.rosterNumber);
+    });
+  });
+
+  // STEP 1: Bidders — most senior (lowest seniorityRank) wins first
+  const sortedBidders = [..._stateRaw.employees]
+    .filter(e => bidMap[idLo(e.id)])
+    .sort((a, b) => (a.seniorityRank || 9999) - (b.seniorityRank || 9999));
+
+  let bidCount = 0;
+  sortedBidders.forEach(emp => {
+    const lo = idLo(emp.id);
+    if (doneIds.has(lo)) return;
+    const avail = _stateRaw.rosters.filter(
+      r => r.status === 'available' && (bidMap[lo] || []).includes(r.rosterNumber)
+    );
+    if (!avail.length) return;
+    // Prefer most-contested (highest bid count) among available choices
+    avail.sort((a, b) => b.bids.length - a.bids.length);
+    const won = avail[0];
+    won.assignedTo = { empId: emp.id, empName: emp.name, seniority: emp.seniorityRank, department: emp.department };
+    won.status     = 'assigned';
+    doneIds.add(lo);
+    bidCount++;
+    _stateRaw.processedResults.push({ roster: won, winner: won.assignedTo, allBidders: [...won.bids], type: 'bid' });
+  });
+
+  // STEP 2: Non-bidders — receive leftover rosters as rewards
+  const nonBidders = [..._stateRaw.employees]
+    .filter(e => !doneIds.has(idLo(e.id)) && !bidMap[idLo(e.id)])
+    .sort((a, b) => (a.seniorityRank || 9999) - (b.seniorityRank || 9999));
+
+  let rewardCount = 0;
+  nonBidders.forEach(emp => {
+    let slot = _stateRaw.rosters.find(r => r.status === 'available' && r.department === emp.department);
+    if (!slot) slot = _stateRaw.rosters.find(r => r.status === 'available' && r.line === emp.line);
+    if (!slot) slot = _stateRaw.rosters.find(r => r.status === 'available');
+    if (!slot) return;
+    slot.assignedTo = { empId: emp.id, empName: emp.name, seniority: emp.seniorityRank, department: emp.department };
+    slot.status     = 'reward';
+    doneIds.add(idLo(emp.id));
+    rewardCount++;
+    _stateRaw.processedResults.push({ roster: slot, winner: slot.assignedTo, allBidders: [], type: 'reward' });
+  });
+
+  const unassigned = _stateRaw.rosters.filter(r => r.status === 'available').length;
+
+  // STEP 3: Rebuild carry-over archive using ACTUAL assigned rosters
+  // (winner may have swapped to a different roster via bidding)
+  const pa = _stateRaw._pendingArchive;
+  if (pa) {
+    const newR = {}, newD = {}, newO = {};
+    _stateRaw.rosters.forEach(roster => {
+      if (!roster.assignedTo) return;
+      const winnerEmpId = roster.assignedTo.empId;
+      const origEmpId   = roster.originalEmpId;
+      const origOffset  = (pa.cycleOffsetByEmpId || {})[origEmpId];
+      if (origOffset === undefined) return;
+      newR[winnerEmpId] = roster.shifts.map(s => s.code);
+      newD[winnerEmpId] = roster.department;
+      newO[winnerEmpId] = origOffset;
+    });
+    _stateRaw._pendingArchive = { ...pa, rostersByEmpId: newR, deptByEmpId: newD, cycleOffsetByEmpId: newO };
+
+    // Auto-save to archive immediately
+    const arch = loadArchive();
+    const ai   = arch.findIndex(a => a.key === _stateRaw._pendingArchive.key);
+    if (ai >= 0) arch[ai] = _stateRaw._pendingArchive;
+    else          arch.push(_stateRaw._pendingArchive);
+    saveArchive(arch);
+  }
+
+  persistState();
+
+  el('proc-result').innerHTML =
+    `<div class="alert alert-success">
+      ✅ <strong>Processing complete!</strong><br>
+      🏆 Bid assignments (by seniority): <strong>${bidCount}</strong><br>
+      🎁 Reward allocations (non-bidders): <strong>${rewardCount}</strong><br>
+      📭 Unassigned rosters: <strong>${unassigned}</strong><br>
+      <small style="opacity:0.75">🗄️ Archive auto-saved — next month will continue correct block patterns.</small>
+    </div>`;
+
+  setText('nav-bids-count', _stateRaw.rosters.reduce((s, r) => s + r.bids.length, 0));
+  renderResults();
+  renderSummary();
+  renderBrowse();
+  updateProcessStats();
+  showToast(`✅ Bids processed — ${bidCount} assigned, ${rewardCount} rewarded, ${unassigned} unassigned.`, 'success');
+}
+
+/**
+ * Clear all bids and reset assignments, with a confirmation prompt.
+ */
+function clearAllBids() {
+  if (!confirm('Clear all bids and reset all assignments?')) return;
+  _stateRaw.rosters.forEach(r => {
+    r.bids        = [];
+    r.assignedTo  = null;
+    if (r.status !== 'vacation') r.status = 'available';
+  });
+  _stateRaw.processedResults = [];
+  persistState();
+  updateProcessStats();
+  renderBrowse();
+  renderResults();
+  renderSummary();
+  el('proc-result').innerHTML = '<div class="alert alert-info">All bids cleared and assignments reset.</div>';
+  setText('nav-bids-count', '0');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 10  RESULTS & SUMMARY
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Render the results table using a DocumentFragment.
+ */
+function renderResults() {
+  const tbody = document.getElementById('results-tbody');
+  if (!tbody) return;
+
+  if (!_stateRaw.processedResults.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text3)">Process bids first.</td></tr>';
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  _stateRaw.processedResults.forEach(res => {
+    const e2   = empById(res.winner.empId);
+    const isR  = res.type === 'reward';
+    const row  = document.createElement('tr');
+    row.className = isR ? 'reward-row' : 'winner-row';
+
+    const cells = [
+      () => { const td = document.createElement('td');
+               const s = document.createElement('strong'); s.style.color = 'var(--accent)';
+               s.textContent = `#${res.roster.rosterNumber}`; td.appendChild(s); return td; },
+      () => { const td = document.createElement('td'); td.textContent = res.roster.department; return td; },
+      () => { const td = document.createElement('td');
+               const s = document.createElement('span'); s.style.color = isR ? 'var(--warn)' : 'var(--accent3)';
+               s.textContent = isR ? '🎁 Reward' : '🏆 Bid'; td.appendChild(s); return td; },
+      () => { const td = document.createElement('td');
+               const s = document.createElement('strong'); s.style.color = isR ? 'var(--warn)' : 'var(--accent3)';
+               s.textContent = `${res.winner.empName} (${res.winner.empId})`; td.appendChild(s); return td; },
+      () => { const td = document.createElement('td'); td.textContent = `#${e2 ? e2.seniorityRank : '—'}`; return td; },
+      () => { const td = document.createElement('td');
+               td.style.cssText = "font-size:11px;color:var(--text2);font-family:'DM Mono',monospace";
+               td.textContent   = res.allBidders.map((b, i) => {
+                 const e3 = empById(b.empId);
+                 return `${i === 0 ? '🏆 ' : ''}${b.empName}(#${e3 ? e3.seniorityRank : '?'})`;
+               }).join(' | ') || '—';
+               return td; },
+    ];
+    cells.forEach(fn => row.appendChild(fn()));
+    frag.appendChild(row);
+  });
+
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+/**
+ * Render the summary statistics and per-employee breakdown table.
+ */
+function renderSummary() {
+  const nonVac = _stateRaw.rosters.filter(r => r.status !== 'vacation');
+  setText('sum-total',        nonVac.length);
+  setText('sum-bid-assigned', _stateRaw.rosters.filter(r => r.status === 'assigned').length);
+  setText('sum-reward',       _stateRaw.rosters.filter(r => r.status === 'reward').length);
+  setText('sum-open',         nonVac.filter(r => r.status === 'available').length);
+  setText('sum-bids',         _stateRaw.rosters.reduce((s, r) => s + r.bids.length, 0));
+
+  // Build per-employee stats
+  const empStats  = {};
+  const bidderLo  = new Set(_stateRaw.rosters.flatMap(r => r.bids.map(b => idLo(b.empId))));
+
+  _stateRaw.rosters.forEach(r => {
+    r.bids.forEach(b => {
+      const lo = idLo(b.empId);
+      if (!empStats[lo]) empStats[lo] = { id: b.empId, name: b.empName, dept: b.department, placed: 0, won: 0, type: 'bidder' };
+      empStats[lo].placed++;
+    });
+    if (r.assignedTo) {
+      const lo = idLo(r.assignedTo.empId);
+      if (!empStats[lo]) empStats[lo] = {
+        id: r.assignedTo.empId, name: r.assignedTo.empName, dept: r.assignedTo.department,
+        placed: 0, won: 0, type: r.status === 'reward' ? 'non-bidder' : 'bidder',
+      };
+      empStats[lo].won++;
+    }
+  });
+  _stateRaw.employees.filter(e => !bidderLo.has(idLo(e.id))).forEach(e => {
+    const lo = idLo(e.id);
+    if (!empStats[lo]) empStats[lo] = { id: e.id, name: e.name, dept: e.department, placed: 0, won: 0, type: 'non-bidder' };
+  });
+
+  const tbody = document.getElementById('sum-tbody');
+  if (!tbody) return;
+  const frag  = document.createDocumentFragment();
+
+  Object.values(empStats).sort((a, b) => String(a.id).localeCompare(String(b.id))).forEach(s => {
+    const row = document.createElement('tr');
+    [
+      () => { const td = document.createElement('td');
+               const strong = document.createElement('strong'); strong.style.fontFamily = "'DM Mono',monospace";
+               strong.textContent = s.id; td.appendChild(strong); return td; },
+      () => { const td = document.createElement('td'); td.textContent = s.name; return td; },
+      () => { const td = document.createElement('td'); td.textContent = s.dept; return td; },
+      () => { const td = document.createElement('td');
+               const sp = document.createElement('span');
+               sp.style.color = s.type === 'non-bidder' ? 'var(--warn)' : 'var(--accent3)';
+               sp.textContent = s.type === 'non-bidder' ? '🚫 Non-bidder' : '✅ Bidder';
+               td.appendChild(sp); return td; },
+      () => { const td = document.createElement('td'); td.textContent = s.placed; return td; },
+      () => { const td = document.createElement('td');
+               const strong = document.createElement('strong'); strong.style.color = 'var(--accent3)';
+               strong.textContent = s.won; td.appendChild(strong); return td; },
+      () => { const td = document.createElement('td');
+               const sp = document.createElement('span');
+               if (s.type === 'non-bidder' && s.won > 0) { sp.style.color = 'var(--warn)';   sp.textContent = '🎁 Reward'; }
+               else if (s.won > 0)                        { sp.style.color = 'var(--accent3)'; sp.textContent = '🏆 Won'; }
+               else                                        { sp.textContent = '—'; }
+               td.appendChild(sp); return td; },
+    ].forEach(fn => row.appendChild(fn()));
+    frag.appendChild(row);
+  });
+
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 11  EXPORT & ARCHIVE
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Export processed results as a CSV file download.
+ */
+function exportResultsCSV() {
+  if (!_stateRaw.processedResults.length) {
+    showToast('⚠️ Process bids first — no results to export yet.', 'warn');
+    return;
+  }
+  let csv = 'Roster #,Department,Type,Winner Name,Winner ID,Seniority,All Bidders\n';
+  _stateRaw.processedResults.forEach(res => {
+    const e2 = empById(res.winner.empId);
+    // Wrap name fields in quotes to handle commas
+    csv += [
+      res.roster.rosterNumber,
+      `"${res.roster.department}"`,
+      res.type === 'reward' ? 'Reward' : 'Bid',
+      `"${res.winner.empName}"`,
+      res.winner.empId,
+      `#${e2 ? e2.seniorityRank : '—'}`,
+      `"${res.allBidders.map(b => `${b.empName}(${b.empId})`).join(', ')}"`,
+    ].join(',') + '\n';
+  });
+  const a   = document.createElement('a');
+  a.href    = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `roster-${_stateRaw.year}-${String(_stateRaw.month).padStart(2, '0')}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/**
+ * Manually save the current month to the archive.
+ * If bids have been processed, uses the corrected (post-bid) patterns.
+ */
+function saveToArchive() {
+  if (!_stateRaw._pendingArchive) {
+    showToast('⚠️ Generate rosters first before archiving.', 'warn');
+    return;
+  }
+  const pa             = _stateRaw._pendingArchive;
+  const hasAssignments = _stateRaw.rosters.some(r => r.assignedTo);
+  let archEntry        = pa;
+
+  if (hasAssignments) {
+    const newR = {}, newD = {}, newO = {};
+    _stateRaw.rosters.forEach(roster => {
+      if (!roster.assignedTo) return;
+      const winnerEmpId = roster.assignedTo.empId;
+      const origOffset  = (pa.cycleOffsetByEmpId || {})[roster.originalEmpId];
+      if (origOffset === undefined) return;
+      newR[winnerEmpId] = roster.shifts.map(s => s.code);
+      newD[winnerEmpId] = roster.department;
+      newO[winnerEmpId] = origOffset;
+    });
+    archEntry = { ...pa, rostersByEmpId: newR, deptByEmpId: newD, cycleOffsetByEmpId: newO };
+    _stateRaw._pendingArchive = archEntry;
+    persistState();
+  }
+
+  const arch = loadArchive();
+  const i    = arch.findIndex(a => a.key === archEntry.key);
+  if (i >= 0) arch[i] = archEntry;
+  else         arch.push(archEntry);
+  saveArchive(arch);
+
+  setText('nav-archive-count', arch.length);
+  renderArchivePanel();
+  showToast(`✅ ${MN[_stateRaw.month - 1]} ${_stateRaw.year} archived with ${hasAssignments ? 'assigned' : 'generated'} patterns.`, 'success');
+}
+
+/**
+ * Render the archive panel listing all saved months.
+ */
+function renderArchivePanel() {
+  const arch = loadArchive();
+  setText('nav-archive-count', arch.length);
+  const div = document.getElementById('archive-list');
+  if (!div) return;
+
+  if (!arch.length) {
+    div.innerHTML = '<div class="alert alert-info">No archived months yet. Archive will be created automatically when bids are processed.</div>';
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  [...arch].reverse().forEach(entry => {
+    const ec   = Object.keys(entry.rostersByEmpId || {}).length;
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
+
+    const left  = document.createElement('div');
+    const title = document.createElement('strong');
+    title.style.cssText = 'font-size:17px;color:var(--accent)';
+    title.textContent   = `${MN[entry.month - 1]} ${entry.year}`;
+    const chip = document.createElement('span');
+    chip.className  = 'info-chip';
+    chip.style.marginLeft = '10px';
+    chip.textContent = `${ec} employees`;
+    left.appendChild(title);
+    left.appendChild(chip);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn btn-danger btn-sm';
+    delBtn.textContent = '🗑 Delete';
+    delBtn.onclick   = () => deleteArchive(entry.key);
+
+    hdr.appendChild(left);
+    hdr.appendChild(delBtn);
+
+    const meta = document.createElement('p');
+    meta.style.cssText = "font-size:11px;color:var(--text3);font-family:'DM Mono',monospace";
+    meta.textContent   = `Saved: ${new Date(entry.generatedAt).toLocaleString()}\n` +
+      `Carry-over into: ${entry.month === 12 ? MN[0] + ' ' + (entry.year + 1) : MN[entry.month] + ' ' + entry.year}`;
+
+    card.appendChild(hdr);
+    card.appendChild(meta);
+    frag.appendChild(card);
+  });
+
+  div.innerHTML = '';
+  div.appendChild(frag);
+}
+
+/**
+ * Delete a specific archived month by key, with confirmation.
+ * @param {string} key  e.g. "2025-03"
+ */
+function deleteArchive(key) {
+  if (!confirm('Delete this archived month? This cannot be undone.')) return;
+  saveArchive(loadArchive().filter(a => a.key !== key));
+  renderArchivePanel();
+  showToast('🗑️ Archive entry deleted.', 'info');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 12  RESET
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Reset rosters, bids, and results — keeping uploaded employees and archive.
+ */
+function resetAll() {
+  if (!confirm('Reset all rosters, bids and results? Uploaded employees and archive are kept.')) return;
+  _stateRaw.employees         = [];
+  _stateRaw.rosters           = [];
+  _stateRaw.processedResults  = [];
+  _stateRaw.monthDates        = [];
+  _stateRaw._pendingArchive   = null;
+  persistState();
+  el('gen-log').style.display  = 'none';
+  el('gen-log').textContent    = '';
+  el('gen-stats').style.display = 'none';
+  el('gen-status').textContent  = 'No rosters generated yet';
+  setText('nav-rosters-count', '0');
+  setText('nav-bids-count',    '0');
+  renderBrowse();
+  updateProcessStats();
+  renderResults();
+  renderSummary();
+  showToast('🔄 Rosters reset. Upload employees and generate again.', 'info');
+}
+
+/**
+ * Wipe all data including uploaded employees, with a double confirmation.
+ */
+function clearAllData() {
+  if (!confirm('⚠️ Clear ALL data including uploaded employees? This cannot be undone.')) return;
+  clearState();
+  location.reload();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 13  AUTH
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** @type {{ role: string, empId: string|null, empName: string }|null} */
+let currentUser = null;
+
+/**
+ * Attempt login for the given role, validating credentials.
+ * @param {'planner'|'staff'} role
+ */
+function doLogin(role) {
+  if (role === 'planner') {
+    const u   = el('planner-user').value.trim();
+    const p   = el('planner-pass').value;
+    const err = el('planner-err');
+    if (u !== CREDS.PLANNER_USER || p !== CREDS.PLANNER_PASS) {
+      err.textContent = '❌ Invalid credentials';
+      return;
+    }
+    err.textContent = '';
+    currentUser = { role: 'planner', empId: null, empName: 'Planner' };
+  } else {
+    const eid = el('staff-empid').value.trim();
+    const p   = el('staff-pass').value;
+    const err = el('staff-err');
+    if (!eid) { err.textContent = '❌ Enter your Employee ID'; return; }
+    if (p !== CREDS.STAFF_PASS) { err.textContent = '❌ Incorrect password'; return; }
+    err.textContent = '';
+    const emp   = empById(eid);
+    currentUser = { role: 'staff', empId: eid, empName: emp ? emp.name : eid };
+  }
+  showApp();
+}
+
+/**
+ * Show the main application and initialise the correct view for the current user.
+ */
+function showApp() {
+  el('login-screen').style.display = 'none';
+  el('app').style.display          = 'block';
+
+  // Close any open modal
+  document.querySelectorAll('.fl-modal-overlay').forEach(m => m.classList.remove('open'));
+
+  el('user-label').textContent = currentUser.role === 'planner'
+    ? '🗂️ Planner'
+    : `👤 ${currentUser.empId}`;
+  el('user-dot').className = 'user-dot ' + currentUser.role;
+
+  if (_stateRaw.uploadedEmployees.length > 0) {
+    setText('hdr-emp-count', `${_stateRaw.uploadedEmployees.length} employees`);
+    el('hdr-emp-count').style.display = 'inline';
+  }
+
+  renderNav();
+  if (currentUser.role === 'planner') buildPlannerPanels();
+  else                                  buildStaffPortal();
+}
+
+/**
+ * Log out the current user and return to the landing screen.
+ */
+function doLogout() {
+  currentUser = null;
+  el('app').style.display          = 'none';
+  el('login-screen').style.display = 'flex';
+  el('planner-pass').value  = '';
+  el('staff-pass').value    = '';
+  el('planner-err').textContent = '';
+  el('staff-err').textContent   = '';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 14  NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Render the sidebar nav for the current user role.
+ */
+function renderNav() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const frag = document.createDocumentFragment();
+
+  /**
+   * Create a single nav item element.
+   * @param {string} panel
+   * @param {string} icon
+   * @param {string} label
+   * @param {string} [badgeId]
+   * @param {string|number} [badgeVal]
+   * @param {string} [badgeCls]
+   * @returns {HTMLElement}
+   */
+  const navItem = (panel, icon, label, badgeId, badgeVal, badgeCls = '') => {
+    const div = document.createElement('div');
+    div.className       = 'nav-item';
+    div.dataset.panel   = panel;
+    div.onclick         = () => switchPanel(panel);
+    const iEl = document.createElement('span');
+    iEl.className  = 'nav-icon';
+    iEl.textContent = icon;
+    div.appendChild(iEl);
+    div.appendChild(document.createTextNode(' ' + label + ' '));
+    if (badgeId) {
+      const b = document.createElement('span');
+      b.className  = `nav-badge${badgeCls ? ' ' + badgeCls : ''}`;
+      b.id         = badgeId;
+      b.textContent = String(badgeVal ?? 0);
+      div.appendChild(b);
+    }
+    return div;
+  };
+
+  const sectionLabel = text => {
+    const d = document.createElement('div');
+    d.className  = 'sidebar-label';
+    d.textContent = text;
+    return d;
+  };
+
+  if (currentUser.role === 'planner') {
+    frag.appendChild(sectionLabel('Setup'));
+    frag.appendChild(navItem('upload',    '📤', 'Upload Employees', 'nav-emp-count',      _stateRaw.uploadedEmployees.length));
+    frag.appendChild(navItem('generator', '⚙️', 'Configure & Generate'));
+    frag.appendChild(sectionLabel('Bidding'));
+    frag.appendChild(navItem('browse',  '🗂️', 'Browse Rosters', 'nav-rosters-count', _stateRaw.rosters.length));
+    frag.appendChild(navItem('process', '⚖️', 'Process Bids',   'nav-bids-count',
+      _stateRaw.rosters.reduce((a, r) => a + r.bids.length, 0)));
+    frag.appendChild(navItem('results', '🏆', 'Results'));
+    frag.appendChild(sectionLabel('Reports'));
+    frag.appendChild(navItem('summary', '📊', 'Summary'));
+    frag.appendChild(sectionLabel('Archive'));
+    frag.appendChild(navItem('archive', '🗄️', 'Month Archive', 'nav-archive-count', loadArchive().length, 'warn'));
+  } else {
+    frag.appendChild(sectionLabel('My Portal'));
+    frag.appendChild(navItem('staff-bid',     '🗂️', 'Browse & Bid'));
+    frag.appendChild(navItem('staff-results', '🏆', 'My Results'));
+  }
+
+  sidebar.innerHTML = '';
+  sidebar.appendChild(frag);
+}
+
+/**
+ * Switch the active panel and refresh its data.
+ * @param {string} name
+ */
+function switchPanel(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById(`panel-${name}`);
+  const nav   = document.querySelector(`.nav-item[data-panel="${name}"]`);
+  if (!panel) return;
+  panel.classList.add('active');
+  if (nav) nav.classList.add('active');
+
+  // Lazy-render each panel when first activated
+  const refreshMap = {
+    process:        updateProcessStats,
+    results:        renderResults,
+    summary:        renderSummary,
+    browse:         () => { populateBrowseFilters(); renderBrowse(); },
+    archive:        renderArchivePanel,
+    'staff-bid':    renderStaffBid,
+    'staff-results': renderStaffResults,
+  };
+  if (refreshMap[name]) refreshMap[name]();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 15  PANEL BUILDERS  (inject HTML structure; data filled by render functions)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Build the planner panel HTML and insert into the content area.
+ * Data is populated by individual render functions after building.
+ */
+function buildPlannerPanels() {
+  el('content-area').innerHTML = `
+<!-- UPLOAD -->
+<div class="tab-panel active" id="panel-upload">
+  <div class="section-header"><h2>📤 Upload Employees</h2><p>Import your staff file. One roster per employee.</p></div>
+  ${_stateRaw.uploadedEmployees.length
+    ? `<div class="alert alert-success" style="margin-bottom:16px">✅ <strong>${_stateRaw.uploadedEmployees.length}</strong> employees already loaded from previous session.
+       <button class="btn btn-ghost btn-sm" onclick="clearAllData()" style="margin-left:8px">🗑 Clear &amp; Re-upload</button></div>`
+    : ''}
+  <div class="upload-zone" id="upload-zone"
+    ondragover="event.preventDefault();this.classList.add('drag-over')"
+    ondragleave="this.classList.remove('drag-over')"
+    ondrop="handleUploadDrop(event)"
+    onclick="document.getElementById('emp-file-input').click()">
+    <div class="upload-zone-icon">📁</div>
+    <h3>Drag &amp; Drop Employee File</h3>
+    <p>Excel (.xlsx / .xls) or CSV accepted</p>
+    <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('emp-file-input').click()">Choose File</button>
+    <input type="file" id="emp-file-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleEmpFile(this.files[0])">
+  </div>
+  <div id="upload-result" style="margin-top:14px"></div>
+  <div id="col-mapper" style="display:none;margin-top:18px">
+    <div class="card">
+      <div class="card-title">🗂️ Map Columns</div>
+      <div id="raw-headers-preview" style="margin-bottom:14px;padding:9px 13px;background:var(--surface2);border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text2)"></div>
+      <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+        <div class="form-group"><label>Employee ID <span style="color:var(--danger)">*</span></label><select id="map-id"></select></div>
+        <div class="form-group"><label>Employee Name <span style="color:var(--danger)">*</span></label><select id="map-name"></select></div>
+        <div class="form-group"><label>Department <span style="color:var(--danger)">*</span></label><select id="map-dept"></select></div>
+        <div class="form-group"><label>Position</label><select id="map-pos"><option value="-1">— skip —</option></select></div>
+        <div class="form-group"><label>Line</label><select id="map-line"><option value="-1">— skip —</option></select></div>
+        <div class="form-group"><label>Participates In Bidding</label><select id="map-bid"><option value="-1">— skip (all YES) —</option></select></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px">
+        <button class="btn btn-success" onclick="applyColumnMapping()">✅ Apply Mapping &amp; Load</button>
+        <div id="mapper-status" class="info-chip"></div>
+      </div>
+      <div style="margin-top:14px;overflow-x:auto;max-height:200px;overflow-y:auto">
+        <table class="data-table" id="raw-preview-table"></table>
+      </div>
+    </div>
+  </div>
+  <div id="emp-preview" style="display:none;margin-top:22px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div class="card-title" style="margin-bottom:0">Loaded Employees <span id="emp-preview-count" style="color:var(--accent)"></span></div>
+      <button class="btn btn-ghost btn-sm" onclick="el('col-mapper').style.display='block'">🔧 Re-map</button>
+    </div>
+    <div style="max-height:400px;overflow-y:auto">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>ID</th><th>Name</th><th>Dept</th><th>Position</th><th>Line</th><th>Bidding?</th></tr></thead>
+        <tbody id="emp-preview-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATOR -->
+<div class="tab-panel" id="panel-generator">
+  <div class="section-header"><h2>⚙️ Configure &amp; Generate</h2><p>Block-shift: 5 on / 2 off per rotation. Carries over from previous month if archived.</p></div>
+  <div id="carry-banner" class="carry-banner" style="display:none">
+    <span style="font-size:18px">↩</span>
+    <div><strong>Previous month carry-over detected</strong><br><span id="carry-banner-detail" style="font-size:12px;opacity:0.8"></span></div>
+  </div>
+  <div class="card"><div class="card-title">📅 Period</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Year</label><input type="number" id="gen-year" value="${_stateRaw.year}" min="2020" max="2035" onchange="checkCarryOver()"></div>
+      <div class="form-group"><label>Month</label>
+        <select id="gen-month" onchange="checkCarryOver()">
+          ${MN.map((m, i) => `<option value="${i + 1}"${i + 1 === _stateRaw.month ? ' selected' : ''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Vacation % (headcount only)</label><input type="number" id="gen-vac" value="10" min="0" max="50"></div>
+    </div>
+  </div>
+  <div class="card"><div class="card-title">🏢 Departments</div>
+    <div style="overflow-x:auto"><table class="dept-table">
+      <thead><tr><th>Department</th><th>Line</th><th>Position</th><th>HC</th><th>Shifts</th><th>Include</th></tr></thead>
+      <tbody id="dept-tbody"></tbody>
+    </table></div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+    <button class="btn btn-success" id="btn-generate" onclick="generateRosters()">⚡ Generate Rosters</button>
+    <button class="btn btn-ghost" onclick="resetAll()">🔄 Reset Rosters</button>
+    <div class="info-chip" id="gen-status">${_stateRaw.rosters.length ? `✓ ${_stateRaw.rosters.length} rosters loaded` : 'No rosters generated yet'}</div>
+  </div>
+  <div id="gen-log" style="display:none"></div>
+  <div id="gen-stats" style="${_stateRaw.rosters.length ? '' : 'display:none'}">
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+    <div class="stats-grid">
+      <div class="stat-card accent"><div class="label">Rosters</div><div class="value" id="gs-rosters">${_stateRaw.rosters.length}</div></div>
+      <div class="stat-card"><div class="label">Employees</div><div class="value" id="gs-emps">${_stateRaw.employees.length}</div></div>
+      <div class="stat-card warn"><div class="label">Vacation</div><div class="value" id="gs-vac">${_stateRaw.rosters.filter(r => r.status === 'vacation').length}</div></div>
+      <div class="stat-card"><div class="label">Days</div><div class="value" id="gs-days">${_stateRaw.monthDates.length}</div></div>
+      <div class="stat-card"><div class="label">Depts</div><div class="value" id="gs-depts">${new Set(_stateRaw.rosters.map(r => r.department)).size}</div></div>
+      <div class="stat-card purple"><div class="label">Non-Bidders</div><div class="value" id="gs-nonbid">${_stateRaw.employees.filter(e => !e.participatesInBidding).length}</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BROWSE -->
+<div class="tab-panel" id="panel-browse">
+  <div class="section-header"><h2>🗂️ Browse Rosters</h2></div>
+  <div class="card">
+    <div class="form-group" style="max-width:260px"><label>Filter Department</label>
+      <select id="bid-dept-filter" onchange="renderBrowse()"><option value="">All</option></select>
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#ff7043"></div>Early (E)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#42a5f5"></div>Late (L)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ab47bc"></div>Night (N)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#607d8b"></div>OFF</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div>VAC</div>
+  </div>
+  <div class="roster-grid" id="browse-grid"></div>
+</div>
+
+<!-- PROCESS -->
+<div class="tab-panel" id="panel-process">
+  <div class="section-header"><h2>⚖️ Process Bids</h2>
+    <p>Assigns by seniority rank. Non-bidders receive leftover rosters as rewards.</p></div>
+  <div class="stats-grid">
+    <div class="stat-card accent"><div class="label">Total Rosters</div><div class="value" id="proc-total">0</div></div>
+    <div class="stat-card"><div class="label">With Bids</div><div class="value" id="proc-with-bids">0</div></div>
+    <div class="stat-card success"><div class="label">Total Bids</div><div class="value" id="proc-bid-count">0</div></div>
+    <div class="stat-card"><div class="label">Unique Bidders</div><div class="value" id="proc-bidders">0</div></div>
+    <div class="stat-card purple"><div class="label">Non-Bidders</div><div class="value" id="proc-nonbid">0</div></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:20px">
+    <button class="btn btn-success" id="btn-process" style="font-size:14px;padding:11px 26px" onclick="processAllBids()">🎯 Process All Bids</button>
+    <button class="btn btn-danger" onclick="clearAllBids()">🗑️ Clear All Bids</button>
+  </div>
+  <div id="proc-result"></div>
+  <div class="card-title" style="margin-top:6px">Bids Review</div>
+  <div style="overflow-x:auto">
+    <table class="data-table"><thead><tr><th>Roster #</th><th>Dept</th><th>Bidders (most senior first)</th><th>#</th></tr></thead>
+    <tbody id="proc-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="tab-panel" id="panel-results">
+  <div class="section-header"><h2>🏆 Results</h2></div>
+  <div style="display:flex;gap:10px;margin-bottom:16px">
+    <button class="btn btn-primary" onclick="exportResultsCSV()">📥 Export CSV</button>
+    <button class="btn btn-ghost" onclick="saveToArchive()">🗄️ Save to Archive</button>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="data-table"><thead><tr><th>Roster #</th><th>Dept</th><th>Type</th><th>Assigned To</th><th>Seniority</th><th>All Bidders</th></tr></thead>
+    <tbody id="results-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="tab-panel" id="panel-summary">
+  <div class="section-header"><h2>📊 Summary</h2></div>
+  <div class="stats-grid">
+    <div class="stat-card accent"><div class="label">Total</div><div class="value" id="sum-total">0</div></div>
+    <div class="stat-card success"><div class="label">Bid-Assigned</div><div class="value" id="sum-bid-assigned">0</div></div>
+    <div class="stat-card warn"><div class="label">Reward</div><div class="value" id="sum-reward">0</div></div>
+    <div class="stat-card danger"><div class="label">Unassigned</div><div class="value" id="sum-open">0</div></div>
+    <div class="stat-card"><div class="label">Total Bids</div><div class="value" id="sum-bids">0</div></div>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="data-table"><thead><tr><th>ID</th><th>Name</th><th>Dept</th><th>Bidding?</th><th>Placed</th><th>Won</th><th>Type</th></tr></thead>
+    <tbody id="sum-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- ARCHIVE -->
+<div class="tab-panel" id="panel-archive">
+  <div class="section-header"><h2>🗄️ Month Archive</h2></div>
+  <div id="archive-list"></div>
+</div>`;
+
+  // Build dept table rows using DocumentFragment
+  const deptTbody = document.getElementById('dept-tbody');
+  const deptFrag  = document.createDocumentFragment();
+  DEPT_CONFIGS.forEach(cfg => {
+    _stateRaw.deptIncludes[cfg.dept] = true;
+    const tr = document.createElement('tr');
+    const pillsHtml = cfg.shifts.map(s => `<span class="shift-pill pill-${s}">${s}</span>`).join('→');
+
+    [cfg.dept, cfg.line, cfg.position, cfg.headcount].forEach((val, i) => {
+      const td = document.createElement('td');
+      if (i === 0) { const strong = document.createElement('strong'); strong.textContent = val; td.appendChild(strong); }
+      else          td.textContent = val;
+      tr.appendChild(td);
+    });
+    const pillTd = document.createElement('td');
+    pillTd.innerHTML = pillsHtml; // safe — cfg.shifts are hardcoded constants, not user input
+    tr.appendChild(pillTd);
+    const chkTd  = document.createElement('td');
+    const chk    = document.createElement('input');
+    chk.type     = 'checkbox';
+    chk.checked  = true;
+    chk.style.cssText = 'width:15px;height:15px;accent-color:var(--accent)';
+    chk.onchange = () => { _stateRaw.deptIncludes[cfg.dept] = chk.checked; };
+    chkTd.appendChild(chk);
+    tr.appendChild(chkTd);
+    deptFrag.appendChild(tr);
+  });
+  deptTbody.appendChild(deptFrag);
+
+  if (_stateRaw.uploadedEmployees.length) renderEmpPreview(_stateRaw.uploadedEmployees);
+  checkCarryOver();
+  renderArchivePanel();
+  populateBrowseFilters();
+  renderBrowse();
+  updateProcessStats();
+  renderResults();
+  renderSummary();
+  switchPanel('upload');
+}
+
+/**
+ * Build the staff portal HTML shell (panels populated by render functions).
+ */
+function buildStaffPortal() {
+  el('content-area').innerHTML = `
+<div class="tab-panel" id="panel-staff-bid">
+  <div id="staff-bid-content" style="max-width:900px;margin:0 auto;padding-top:8px"></div>
+</div>
+<div class="tab-panel" id="panel-staff-results">
+  <div id="staff-results-content" style="max-width:900px;margin:0 auto;padding-top:8px"></div>
+</div>`;
+  switchPanel('staff-bid');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// § 16  BOOT
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Load persisted state from localStorage before any render occurs. */
+loadState();
+</script>
+</body>
+</html>
