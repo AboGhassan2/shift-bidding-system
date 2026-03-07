@@ -61,14 +61,14 @@ body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:50
 .fl-page{
   position:relative;z-index:10;
   display:flex;flex-direction:column;align-items:center;
-  padding:60px 24px 80px;gap:0;
+  padding:60px 48px 80px;gap:0;
+  width:100%;box-sizing:border-box;
 }
 
-/* ── Hero ── */
-.fl-hero{text-align:center;margin-bottom:36px;}
+.fl-hero{text-align:center;margin-bottom:36px;width:100%;max-width:1200px;}
 .fl-hero h1{
-  font-size:clamp(28px,4.5vw,46px);font-weight:800;
-  color:#fff;letter-spacing:-0.5px;line-height:1.15;margin-bottom:10px;
+  font-size:clamp(32px,5vw,64px);font-weight:800;
+  color:#fff;letter-spacing:-1px;line-height:1.1;margin-bottom:10px;
 }
 .fl-hero-sub{font-size:16px;color:rgba(255,255,255,0.55);margin-bottom:28px;}
 .fl-hero-btns{display:flex;gap:12px;justify-content:center;margin-bottom:22px;}
@@ -94,8 +94,8 @@ body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:50
 
 /* ── Feature cards (3-col) ── */
 .fl-features{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
-  width:100%;max-width:900px;margin-bottom:24px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+  width:100%;max-width:1200px;margin-bottom:24px;
 }
 .fl-feat-card{
   background:rgba(15,25,42,0.85);
@@ -120,11 +120,11 @@ body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:50
 
 /* ── Portal cards (3-col) ── */
 .fl-portals-wrap{
-  width:100%;max-width:900px;
+  width:100%;max-width:1200px;
   background:rgba(10,18,32,0.9);
   border:1px solid rgba(255,255,255,0.1);
-  border-radius:14px;padding:20px;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  border-radius:14px;padding:24px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
   margin-bottom:56px;
 }
 .fl-portal-card{
@@ -395,7 +395,7 @@ body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:50
       <div class="fl-status-row">
         <span class="fl-status-item"><span class="fl-dot green"></span>Bidding Open</span>
         <span class="fl-status-item"><span class="fl-dot green"></span>System Online</span>
-        <span class="fl-status-item"><span class="fl-dot yellow"></span>14 Requests Pending</span>
+        <span class="fl-status-item"><span class="fl-dot yellow"></span>50 Stations · 386 SA</span>
       </div>
     </div>
 
@@ -438,12 +438,12 @@ body::after{content:'';position:fixed;bottom:-20%;right:-10%;width:50%;height:50
     </div>
 
     <!-- Dashboard preview section -->
-    <div style="text-align:center;margin-bottom:28px;">
+    <div style="text-align:center;margin-bottom:28px;width:100%;max-width:1200px;">
       <h2 style="font-size:26px;font-weight:800;color:#fff;margin-bottom:4px;">See the Platform in Action</h2>
       <div style="width:60px;height:2px;background:linear-gradient(90deg,transparent,#3ecf4c,transparent);margin:10px auto 28px;"></div>
       <!-- App mockup frame -->
       <div style="
-        max-width:700px;margin:0 auto;
+        max-width:1100px;margin:0 auto;
         background:#0a1322;
         border:1px solid rgba(255,255,255,0.12);
         border-radius:14px;overflow:hidden;
@@ -687,42 +687,103 @@ const NODE_LINK_DIST = 130;
 const NODE_COUNT = 90;
 
 /** Department configurations — single source of truth */
-const DEPT_CONFIGS = [
-  {dept:'L3 SAMB',     line:'L3',  position:'SAMB',  headcount:68,  shifts:['E','L']},
-  {dept:'L3-LSS/SS',   line:'L3',  position:'SS',    headcount:89,  shifts:['E','L','N']},
-  {dept:'L3-SA',       line:'L3',  position:'SA',    headcount:172, shifts:['E','L']},
-  {dept:'L3-TA-T',     line:'L3',  position:'OTHER', headcount:156, shifts:['E1','L1','L2','N1']},
-  {dept:'L3-DEP-DC',   line:'L3',  position:'OTHER', headcount:9,   shifts:['E','L','N']},
-  {dept:'L3-DEP-DM',   line:'L3',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L3-DEP-EFC',  line:'L3',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L3-DEP-GSM',  line:'L3',  position:'OTHER', headcount:5,   shifts:['E','L']},
-  {dept:'L3-DEP-SC',   line:'L3',  position:'OTHER', headcount:6,   shifts:['E','L','N']},
-  {dept:'L3-DEP-TC',   line:'L3',  position:'OTHER', headcount:10,  shifts:['E','L','N']},
-  {dept:'L3-P&R',      line:'L3',  position:'OTHER', headcount:40,  shifts:['E','L','N']},
-  {dept:'L3-DS',       line:'L3',  position:'OTHER', headcount:12,  shifts:['E','L','N']},
-  {dept:'L46 SAMB',    line:'L46', position:'SAMB',  headcount:69,  shifts:['E','L']},
-  {dept:'L46-LSS/SS',  line:'L46', position:'SS',    headcount:73,  shifts:['E','L','N']},
-  {dept:'L4/6-SA',     line:'L46', position:'SA',    headcount:116, shifts:['E','L']},
-  {dept:'L46-TA-T',    line:'L46', position:'OTHER', headcount:137, shifts:['E1','L1','L2','N1']},
-  {dept:'L46-AOCC',    line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L46-DEP-DC',  line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L4/6-DEP-DM', line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L4/6-DEP-EFC',line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L46-DEP-GSM', line:'L46', position:'OTHER', headcount:5,   shifts:['E','L']},
-  {dept:'L46-DEP-SC',  line:'L46', position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L46-DEP-TC',  line:'L46', position:'OTHER', headcount:9,   shifts:['E','L','N']},
-  {dept:'L46-P&R',     line:'L46', position:'OTHER', headcount:15,  shifts:['E','L','N']},
-  {dept:'L5 SAMB',     line:'L5',  position:'SAMB',  headcount:27,  shifts:['E','L']},
-  {dept:'L5-LSS/SS',   line:'L5',  position:'SS',    headcount:55,  shifts:['E','L','N']},
-  {dept:'L5 SA',       line:'L5',  position:'SA',    headcount:62,  shifts:['E','L']},
-  {dept:'L5-TA-T',     line:'L5',  position:'OTHER', headcount:55,  shifts:['E1','L1','L2','N1']},
-  {dept:'L5-DEP-DC',   line:'L5',  position:'OTHER', headcount:4,   shifts:['E','L','N']},
-  {dept:'L5-DEP-DM',   line:'L5',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L5-DEP-EFC',  line:'L5',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L5-DEP-GSM',  line:'L5',  position:'OTHER', headcount:4,   shifts:['E','L']},
-  {dept:'L5-DEP-SC',   line:'L5',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
-  {dept:'L5-DEP-TC',   line:'L5',  position:'OTHER', headcount:5,   shifts:['E','L','N']},
+// ─── STATION MASTER LIST ─────────────────────────────────────────────────────
+// Each physical station generates three dept-config rows: SA · SAMB · SS
+// SA   : E+L, need 2 per station (min 1; surplus covers uncovered stations)
+// SAMB : E+L, need 1 per station
+// SS   : E+L+N, need 1 per station
+// shiftCode = prefix (E/L/N) + stationCode + SA  (used in roster export & coverage map)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STATION_MASTER = [
+  // code,          line,   displayCode,        saHC, sambHC, ssHC
+  // ── LINE 3 (22 stations) ──────────────────────────────────────────────────
+  ['3A1',          'L3',  'E3A1SA',            10,   3,  3],
+  ['3A2',          'L3',  'E3A2SA',            10,   3,  3],
+  ['3B1',          'L3',  'E3B1SA',            10,   3,  3],
+  ['3B2',          'L3',  'E3B2SA',            14,   3,  3],
+  ['3C2',          'L3',  'E3C2SA',            10,   3,  3],
+  ['3D3',          'L3',  'E3D3SA',             9,   3,  3],
+  ['3D1',          'L3',  'E3D1SA',            10,   3,  3],
+  ['3D2',          'L3',  'E3D2SA',             9,   3,  3],
+  ["3E'1",         'L3',  "E3E'1SA",            9,   3,  3],
+  ['3E2/1F7',      'L3',  'E3E2/1F7SA',        14,   3,  3],
+  ["3E'3",         'L3',  "E3E'3SA",            8,   3,  3],
+  ["3E'4",         'L3',  "E3E'4SA",            8,   3,  3],
+  ["3E'5",         'L3',  "E3E'5SA",            9,   3,  3],
+  ["3E'6",         'L3',  "E3E'6SA",            8,   3,  3],
+  ['3F1',          'L3',  'E3F1SA',             8,   3,  3],
+  ['3F2',          'L3',  'E3F2SA',             9,   3,  3],
+  ['3G1',          'L3',  'E3G1SA',            10,   3,  3],
+  ['3G2',          'L3',  'E3G2SA',            10,   3,  3],
+  ['3H1',          'L3',  'E3H1SA',            10,   3,  3],
+  ['3J1/6H2',      'L3',  'E3J1/6H2SA',        11,   3,  3],
+  ['3J2',          'L3',  'E3J2SA',             8,   3,  3],
+  ['3K1',          'L3',  'E3K1SA',             9,   3,  3],
+  // ── LINE 4 & 6 (16 stations) ─────────────────────────────────────────────
+  ['4A1',          'L46', 'E4A1SA',             4,   3,  3],
+  ['4B1',          'L46', 'E4B1SA',             7,   3,  3],
+  ['4C1',          'L46', 'E4C1SA',             6,   3,  3],
+  ['4C2',          'L46', 'E4C2SA',             5,   3,  3],
+  ['4D1',          'L46', 'E4D1SA',             9,   3,  3],
+  ['4E1',          'L46', 'E4E1SA',             7,   3,  3],
+  ['4G1',          'L46', 'E4G1SA',             9,   3,  3],
+  ['4G2',          'L46', 'E4G2SA',             6,   3,  3],
+  ['4G3',          'L46', 'E4G3SA',            10,   3,  3],
+  ['6D2',          'L46', 'E6D2SA',             9,   3,  3],
+  ['6E1',          'L46', 'E6E1SA',             9,   3,  3],
+  ['6F1',          'L46', 'E6F1SA',             9,   3,  3],
+  ['6G1',          'L46', 'E6G1SA',             9,   3,  3],
+  ['6G2',          'L46', 'E6G2SA',            17,   3,  3],
+  ['6H1',          'L46', 'E6H1SA',            13,   3,  3],
+  ['6H2',          'L46', 'E6H2SA',            10,   3,  3],
+  // ── LINE 5 (12 stations) ─────────────────────────────────────────────────
+  ['5C4/2C2',      'L5',  'E5C4/2C2SA',         6,   2,  2],
+  ['5C2',          'L5',  'E5C2SA',             8,   2,  2],
+  ['5C1',          'L5',  'E5C1SA',             6,   2,  2],
+  ['5B4',          'L5',  'E5B4SA',             3,   2,  2],
+  ['5B3',          'L5',  'E5B3SA',             7,   2,  2],
+  ['5B2',          'L5',  'E5B2SA',             6,   2,  2],
+  ['5B1',          'L5',  'E5B1SA',             7,   2,  2],
+  ['5A3',          'L5',  'E5A3SA',             5,   2,  2],
+  ['5A5',          'L5',  'E5A5SA',            12,   2,  2],
+  ['5A2',          'L5',  'E5A2SA',            10,   2,  2],
+  ['5A6',          'L5',  'E5A6SA',            11,   2,  2],
+  ['5A1/1F4',      'L5',  'E5A1/1F4SA',         4,   2,  2],
 ];
+
+// Coverage requirements per position per shift
+const COVERAGE_REQ = {
+  SA:   { shifts:['E','L'],     perStation: 2, minPerStation: 1 }, // 2 ideal, 1 minimum
+  SAMB: { shifts:['E','L'],     perStation: 1, minPerStation: 1 },
+  SS:   { shifts:['E','L','N'], perStation: 1, minPerStation: 1 },
+};
+
+// Build DEPT_CONFIGS from STATION_MASTER
+const DEPT_CONFIGS = [];
+STATION_MASTER.forEach(([code, line, shiftCode, saHC, sambHC, ssHC]) => {
+  // SA row
+  DEPT_CONFIGS.push({
+    dept: code + '-SA', line, position: 'SA',
+    headcount: saHC, shifts: ['E','L'],
+    stationCode: code, shiftCode,
+    coverageReq: 2, coverageMin: 1,
+  });
+  // SAMB row
+  DEPT_CONFIGS.push({
+    dept: code + '-SAMB', line, position: 'SAMB',
+    headcount: sambHC, shifts: ['E','L'],
+    stationCode: code, shiftCode,
+    coverageReq: 1, coverageMin: 1,
+  });
+  // SS row
+  DEPT_CONFIGS.push({
+    dept: code + '-SS', line, position: 'SS',
+    headcount: ssHC, shifts: ['E','L','N'],
+    stationCode: code, shiftCode,
+    coverageReq: 1, coverageMin: 1,
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // § 2  STATE STORE  (Proxy auto-saves on every top-level mutation)
@@ -1036,9 +1097,142 @@ function getDeptLine(dept) {
  */
 function getDeptPosition(dept) {
   if (/SAMB/i.test(dept))              return 'SAMB';
-  if (/LSS|\/SS/i.test(dept))          return 'SS';
+  if (/LSS|\/SS|\bSS\b/i.test(dept))  return 'SS';
   if (/\bSA\b/i.test(dept) && !/SAMB/i.test(dept)) return 'SA';
   return 'OTHER';
+}
+
+/**
+ * Maps every department string found in the upload file to the list of
+ * DEPT_CONFIGS entries it distributes across.
+ *
+ * Format:  uploadDept  →  [ stationCode, ... ]
+ * The system will assign each uploaded employee to a station by distributing
+ * them round-robin (by order of appearance) across the station list.
+ *
+ * SS uses dept string "L3-LSS/SS" → stations 3A1…3K1 (one SS per station)
+ * SAMB uses "TRAIN AMBASSADOR -" / "L46 SAMB" etc.
+ */
+const UPLOAD_DEPT_MAP = {
+  // ── LINE 3 ────────────────────────────────────────────────────────────────
+  'L3-SA': [
+    '3A1','3A2','3B1','3B2','3C2','3D3','3D1','3D2',
+    "3E'1",'3E2/1F7',"3E'3","3E'4","3E'5","3E'6",
+    '3F1','3F2','3G1','3G2','3H1','3J1/6H2','3J2','3K1',
+  ],
+  'L3-LSS/SS': [
+    '3A1','3A2','3B1','3B2','3C2','3D3','3D1','3D2',
+    "3E'1",'3E2/1F7',"3E'3","3E'4","3E'5","3E'6",
+    '3F1','3F2','3G1','3G2','3H1','3J1/6H2','3J2','3K1',
+  ],
+  'TRAIN AMBASSADOR -': [
+    '3A1','3A2','3B1','3B2','3C2','3D3','3D1','3D2',
+    "3E'1",'3E2/1F7',"3E'3","3E'4","3E'5","3E'6",
+    '3F1','3F2','3G1','3G2','3H1','3J1/6H2','3J2','3K1',
+  ],
+  // ── LINE 4 & 6 ────────────────────────────────────────────────────────────
+  'L46-SA': [
+    '4A1','4B1','4C1','4C2','4D1','4E1','4G1','4G2','4G3',
+    '6D2','6E1','6F1','6G1','6G2','6H1','6H2',
+  ],
+  'L46-LSS/SS': [
+    '4A1','4B1','4C1','4C2','4D1','4E1','4G1','4G2','4G3',
+    '6D2','6E1','6F1','6G1','6G2','6H1','6H2',
+  ],
+  'L46 SAMB': [
+    '4A1','4B1','4C1','4C2','4D1','4E1','4G1','4G2','4G3',
+    '6D2','6E1','6F1','6G1','6G2','6H1','6H2',
+  ],
+  // ── LINE 5 ────────────────────────────────────────────────────────────────
+  'L5-SA': [
+    '5C4/2C2','5C2','5C1','5B4','5B3','5B2','5B1',
+    '5A3','5A5','5A2','5A6','5A1/1F4',
+  ],
+  'L5-LSS/SS': [
+    '5C4/2C2','5C2','5C1','5B4','5B3','5B2','5B1',
+    '5A3','5A5','5A2','5A6','5A1/1F4',
+  ],
+  'TRAIN AMBASSADOR': [
+    '5C4/2C2','5C2','5C1','5B4','5B3','5B2','5B1',
+    '5A3','5A5','5A2','5A6','5A1/1F4',
+  ],
+};
+
+// Round-robin counters — reset each time applyColumnMapping runs
+const _uploadDeptCounters = {};
+
+/**
+ * Resolve a DEPT_CONFIGS entry from upload file values.
+ * Uses UPLOAD_DEPT_MAP for known dept strings (round-robin station assignment).
+ * Falls back to fuzzy matching for unknown strings.
+ */
+function resolveStationConfig(dept, position, line) {
+  const d   = String(dept     || '').trim();
+  const pos = String(position || '').trim().toUpperCase();
+  const ln  = String(line     || '').trim();
+
+  // ── 1. UPLOAD_DEPT_MAP: known dept strings from the real upload file ──────
+  const stationList = UPLOAD_DEPT_MAP[d];
+  if (stationList && stationList.length) {
+    // Determine position for this dept string
+    let resolvedPos = pos;
+    if (!resolvedPos || !['SA','SAMB','SS'].includes(resolvedPos)) {
+      // Infer from dept string
+      resolvedPos = /SAMB|AMBASSADOR/i.test(d) ? 'SAMB'
+                  : /LSS|\/SS|\bSS\b/i.test(d)  ? 'SS'
+                  : /\bSA\b/i.test(d)            ? 'SA'
+                  : pos;
+    }
+    // Round-robin across stations
+    const counterKey = d + '|' + resolvedPos;
+    const idx = (_uploadDeptCounters[counterKey] || 0) % stationList.length;
+    _uploadDeptCounters[counterKey] = idx + 1;
+    const stationCode = stationList[idx];
+    const cfg = DEPT_CONFIGS.find(x => x.stationCode === stationCode && x.position === resolvedPos);
+    if (cfg) return _buildResolved(cfg);
+  }
+
+  // ── 2. Exact dept match (file already has "3D1-SA") ───────────────────────
+  let cfg = DEPT_CONFIGS.find(x => x.dept.toLowerCase() === d.toLowerCase());
+  if (cfg) return _buildResolved(cfg);
+
+  // ── 3. dept + position ────────────────────────────────────────────────────
+  if (pos && ['SA','SAMB','SS'].includes(pos)) {
+    cfg = DEPT_CONFIGS.find(x => x.dept.toLowerCase() === (d + '-' + pos).toLowerCase());
+    if (cfg) return _buildResolved(cfg);
+  }
+
+  // ── 4. Strip position suffix from dept then retry ─────────────────────────
+  const dStripped = d.replace(/[\s\-_]?(SA|SAMB|SS)$/i, '').trim();
+  if (dStripped !== d) {
+    const inferredPos = (d.match(/(SA|SAMB|SS)$/i)?.[1] || pos).toUpperCase();
+    cfg = DEPT_CONFIGS.find(x => x.dept.toLowerCase() === (dStripped + '-' + inferredPos).toLowerCase());
+    if (!cfg) cfg = DEPT_CONFIGS.find(x => x.dept.startsWith(dStripped + '-'));
+    if (cfg) return _buildResolved(cfg);
+  }
+
+  // ── 5. Regex station code extraction ─────────────────────────────────────
+  const codeMatch = d.match(/(\d[A-Z]\d[A-Z0-9'/]*)/i);
+  if (codeMatch) {
+    const code = codeMatch[1];
+    cfg = pos && ['SA','SAMB','SS'].includes(pos)
+      ? DEPT_CONFIGS.find(x => x.stationCode === code && x.position === pos)
+      : DEPT_CONFIGS.find(x => x.stationCode === code);
+    if (cfg) return _buildResolved(cfg);
+  }
+
+  // ── 6. Fallback ───────────────────────────────────────────────────────────
+  const fallbackPos    = pos || getDeptPosition(d);
+  const fallbackLn     = ln  || getDeptLine(d);
+  const fallbackShifts = fallbackPos === 'SS'   ? ['E','L','N']
+                       : fallbackPos === 'SAMB'  ? ['E','L']
+                       : fallbackPos === 'SA'    ? ['E','L']
+                       : getDeptShifts(d);
+  return { cfg: null, stationCode: dStripped || d, position: fallbackPos, line: fallbackLn, shifts: fallbackShifts };
+}
+
+function _buildResolved(cfg) {
+  return { cfg, stationCode: cfg.stationCode, position: cfg.position, line: cfg.line, shifts: cfg.shifts };
 }
 
 /**
@@ -1238,7 +1432,8 @@ function _doGenerateRosters(year, month, vacPct) {
     });
 
     Object.entries(byDept).forEach(([dept, emps]) => {
-      const shifts = getDeptShifts(dept);
+      // Use shifts from first employee's resolved config (all emps in same dept share it)
+      const shifts = emps[0].shifts || getDeptShifts(dept);
       log(`${esc(dept)}: ${emps.length} emps, shifts=[${shifts.join(',')}]`);
       emps.forEach((emp, li) => {
         _stateRaw.employees.push({ ...emp });
@@ -1254,6 +1449,11 @@ function _doGenerateRosters(year, month, vacPct) {
           department:    dept,
           line:          emp.line     || getDeptLine(dept),
           position:      emp.position || getDeptPosition(dept),
+          stationCode:   emp.stationCode || (() => {
+            const c = DEPT_CONFIGS.find(x => x.dept === dept);
+            if (c) return c.stationCode;
+            return dept.replace(/-(SA|SAMB|SS)$/i, '').trim();
+          })(),
           shifts:        _stateRaw.monthDates.map((d, i) => ({
             date: fmtDate(d), code: pattern[i], carryOver: false,
           })),
@@ -1290,6 +1490,7 @@ function _doGenerateRosters(year, month, vacPct) {
           _stateRaw.rosters.push({
             rosterNumber:  rn++, department: cfg.dept,
             line: cfg.line, position: cfg.position,
+            stationCode: cfg.stationCode || '',
             shifts: _stateRaw.monthDates.map(d => ({ date: fmtDate(d), code: 'VACATION', carryOver: false })),
             bids: [], assignedTo: null, status: 'vacation', originalEmpId: id,
           });
@@ -1302,6 +1503,7 @@ function _doGenerateRosters(year, month, vacPct) {
           _stateRaw.rosters.push({
             rosterNumber:  rn++, department: cfg.dept,
             line: cfg.line, position: cfg.position,
+            stationCode: cfg.stationCode || '',
             shifts: _stateRaw.monthDates.map((d, i2) => ({
               date: fmtDate(d), code: pattern[i2], carryOver: false,
             })),
@@ -1697,6 +1899,8 @@ function populateMapper(rows, autoMap) {
  * Validates required fields, sanitizes strings, sorts by seniority.
  */
 function applyColumnMapping() {
+  // Reset round-robin counters for each fresh upload
+  Object.keys(_uploadDeptCounters).forEach(k => delete _uploadDeptCounters[k]);
   const gv = id => {
     const s = el(id);
     if (!s || s.value === '' || s.value === null) return -1;
@@ -1723,17 +1927,24 @@ function applyColumnMapping() {
       skipped++;
       continue;
     }
-    const dept = String(rd).trim();
+    const dept     = String(rd).trim();
+    const rawPos   = psC >= 0 && row[psC] != null ? String(row[psC]).trim() : '';
+    const rawLine  = lnC >= 0 && row[lnC] != null ? String(row[lnC]).trim() : '';
+    const resolved = resolveStationConfig(dept, rawPos, rawLine);
     employees.push({
       id:                   String(ri).trim(),
       name:                 String(rn).trim(),
-      department:           dept,
-      position:             psC >= 0 && row[psC] != null ? String(row[psC]).trim() : getDeptPosition(dept),
-      line:                 lnC >= 0 && row[lnC] != null ? String(row[lnC]).trim() : getDeptLine(dept),
+      department:           resolved.cfg ? resolved.cfg.dept : dept,  // canonical dept like "3D1-SA"
+      position:             resolved.position,
+      line:                 resolved.line,
+      stationCode:          resolved.stationCode,
+      shifts:               resolved.shifts,
       participatesInBidding: bdC >= 0 && row[bdC] != null
         ? !['no','n','false','0','لا'].includes(String(row[bdC]).trim().toLowerCase())
         : true,
       seniority: i,
+      _uploadDept: dept,    // keep original for display
+      _matched: !!resolved.cfg,
     });
   }
 
@@ -1754,14 +1965,24 @@ function applyColumnMapping() {
   state.uploadedEmployees = employees;
   persistState();
 
-  const nb    = employees.filter(e => !e.participatesInBidding).length;
-  const depts = [...new Set(employees.map(e => e.department))].length;
+  const nb      = employees.filter(e => !e.participatesInBidding).length;
+  const depts   = [...new Set(employees.map(e => e.department))].length;
+  const matched = employees.filter(e => e._matched).length;
+  const unmatched = employees.length - matched;
+
+  // Build unmatched dept list for warning
+  const unmatchedDepts = [...new Set(
+    employees.filter(e => !e._matched).map(e => `${e._uploadDept} (${e.position})`)
+  )].slice(0, 5);
 
   el('upload-result').innerHTML =
     `<div class="alert alert-success">✅ <strong>${employees.length}</strong> employees loaded · ` +
-    `<strong>${depts}</strong> departments · Non-bidders: <strong>${nb}</strong>` +
+    `<strong>${depts}</strong> station configs · Non-bidders: <strong>${nb}</strong>` +
     `${skipped ? ` · Skipped: ${skipped}` : ''}<br>` +
-    `<small style="opacity:0.7">✔ Saved — staff can log in and see rosters after generation.</small></div>`;
+    `<strong style="color:var(--accent3)">📍 ${matched} linked to station configs</strong>` +
+    (unmatched ? ` · <span style="color:var(--warn)">⚠ ${unmatched} unmatched</span>` +
+      (unmatchedDepts.length ? `<br><small style="color:var(--warn)">Unmatched: ${unmatchedDepts.join(', ')}${employees.filter(e=>!e._matched).length > 5 ? '…' : ''}</small>` : '') : '') +
+    `<br><small style="opacity:0.7">✔ Saved — staff can log in and see rosters after generation.</small></div>`;
 
   renderEmpPreview(employees);
   setText('nav-emp-count',    employees.length);
@@ -1787,35 +2008,70 @@ function renderEmpPreview(employees) {
   employees.slice(0, MAX_EMP_PREVIEW).forEach((e, i) => {
     const tr = document.createElement('tr');
 
-    const cells = [
+    // #, ID, Name
+    [
       { text: String(i + 1),  style: 'color:var(--text3)' },
       { text: e.id,            style: "color:var(--accent);font-family:'DM Mono',monospace;font-weight:700" },
       { text: e.name,          style: '' },
-      { text: e.department,    style: '' },
-      { text: e.position,      style: '' },
-      { text: e.line,          style: '' },
-    ];
-    cells.forEach(({ text, style }) => {
+    ].forEach(({ text, style }) => {
       const td = document.createElement('td');
-      td.textContent = text;          // always textContent — never innerHTML
+      td.textContent = text;
       if (style) td.style.cssText = style;
       tr.appendChild(td);
     });
 
-    // Bidding indicator
+    // Upload Dept (original from file)
+    const deptTd = document.createElement('td');
+    deptTd.style.cssText = "font-family:'DM Mono',monospace;font-size:11px;color:var(--text2)";
+    deptTd.textContent = e._uploadDept || e.department;
+    tr.appendChild(deptTd);
+
+    // → Station Config (linked result)
+    const linkTd = document.createElement('td');
+    if (e._matched) {
+      linkTd.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;">
+        <span style="color:var(--accent3);font-weight:700">✓</span>
+        <strong style="color:var(--accent)">${e.stationCode}</strong>
+        <span style="font-size:10px;color:var(--text3)">(${e.department})</span>
+      </span>`;
+    } else {
+      linkTd.innerHTML = `<span style="color:var(--warn);font-size:11px">⚠ unmatched</span>`;
+    }
+    tr.appendChild(linkTd);
+
+    // Position
+    const posTd = document.createElement('td');
+    const posColor = e.position === 'SA' ? '#ff7043' : e.position === 'SAMB' ? '#42a5f5' : e.position === 'SS' ? '#ab47bc' : 'var(--text2)';
+    posTd.innerHTML = `<span style="font-weight:700;color:${posColor}">${e.position || '—'}</span>`;
+    tr.appendChild(posTd);
+
+    // Line
+    const lineTd = document.createElement('td');
+    const lineColor = e.line === 'L3' ? '#42a5f5' : e.line === 'L46' ? '#ab47bc' : e.line === 'L5' ? '#ff7043' : 'var(--text2)';
+    lineTd.innerHTML = `<span style="font-weight:600;color:${lineColor}">${e.line || '—'}</span>`;
+    tr.appendChild(lineTd);
+
+    // Shifts
+    const shiftTd = document.createElement('td');
+    shiftTd.style.cssText = "font-family:'DM Mono',monospace;font-size:10px";
+    shiftTd.textContent = (e.shifts || []).join(' · ');
+    tr.appendChild(shiftTd);
+
+    // Bidding
     const bidTd = document.createElement('td');
     const bidSpan = document.createElement('span');
     bidSpan.style.color  = e.participatesInBidding ? 'var(--accent3)' : 'var(--warn)';
     bidSpan.textContent  = e.participatesInBidding ? '✅ Yes' : '🚫 No';
     bidTd.appendChild(bidSpan);
     tr.appendChild(bidTd);
+
     frag.appendChild(tr);
   });
 
   if (employees.length > MAX_EMP_PREVIEW) {
     const tr = document.createElement('tr');
     const td = document.createElement('td');
-    td.colSpan     = 7;
+    td.colSpan     = 9;
     td.textContent = `…and ${employees.length - MAX_EMP_PREVIEW} more`;
     td.style.cssText = 'text-align:center;color:var(--text3);padding:10px';
     tr.appendChild(td);
@@ -2048,6 +2304,39 @@ function renderStaffResults() {
     banner.textContent = `${won.status === 'reward' ? '🎁 Reward Allocation' : '🏆 Bid Winner'} — Roster #${won.rosterNumber}`;
     frag.appendChild(banner);
 
+    // Station assignment card
+    if (won.stationCode || won.assignedTo?.assignedStation) {
+      const stationCard = document.createElement('div');
+      stationCard.className = 'card';
+      stationCard.style.cssText = 'border-left:4px solid var(--accent);margin-bottom:14px;';
+      const stCode = won.stationCode || won.assignedTo?.assignedStation || '—';
+      const stLine = won.line || '—';
+      const stPos  = won.position || won.assignedTo?.assignedPosition || '—';
+      const lineColor = stLine === 'L3' ? '#42a5f5' : stLine === 'L46' ? '#ab47bc' : '#ff7043';
+      const posColor  = stPos === 'SA' ? '#ff7043' : stPos === 'SAMB' ? '#42a5f5' : '#ab47bc';
+      stationCard.innerHTML = `
+        <div class="card-title">📍 Station Assignment</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+          <div style="flex:1;min-width:120px;">
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:4px;">STATION</div>
+            <div style="font-size:28px;font-weight:800;color:var(--accent)">${stCode}</div>
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:4px;">LINE</div>
+            <div style="font-size:18px;font-weight:700;color:${lineColor}">${stLine}</div>
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:4px;">POSITION</div>
+            <div style="font-size:18px;font-weight:700;color:${posColor}">${stPos}</div>
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:4px;">TYPE</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text2)">${won.status === 'reward' ? '🎁 Reward' : '🏆 Bid Won'}</div>
+          </div>
+        </div>`;
+      frag.appendChild(stationCard);
+    }
+
     // Shift schedule card
     const card = document.createElement('div');
     card.className = 'card';
@@ -2081,6 +2370,7 @@ function renderStaffResults() {
       const color = s.code === 'OFF'          ? 'var(--text3)'  :
                     s.code.startsWith('E')    ? '#ff7043'       :
                     s.code.startsWith('L')    ? '#42a5f5'       :
+                    s.code.startsWith('M')    ? '#26a69a'       :
                     s.code.startsWith('N')    ? '#ab47bc'       : 'var(--text)';
       span.style.color  = color;
       span.textContent  = s.code;
@@ -2235,7 +2525,8 @@ function _doProcessBids() {
     // Prefer most-contested (highest bid count) among available choices
     avail.sort((a, b) => b.bids.length - a.bids.length);
     const won = avail[0];
-    won.assignedTo = { empId: emp.id, empName: emp.name, seniority: emp.seniorityRank, department: emp.department };
+    won.assignedTo = { empId: emp.id, empName: emp.name, seniority: emp.seniorityRank, department: emp.department,
+                       assignedStation: won.stationCode || '', assignedPosition: won.position || '' };
     won.status     = 'assigned';
     doneIds.add(lo);
     bidCount++;
@@ -2253,7 +2544,8 @@ function _doProcessBids() {
     if (!slot) slot = _stateRaw.rosters.find(r => r.status === 'available' && r.line === emp.line);
     if (!slot) slot = _stateRaw.rosters.find(r => r.status === 'available');
     if (!slot) return;
-    slot.assignedTo = { empId: emp.id, empName: emp.name, seniority: emp.seniorityRank, department: emp.department };
+    slot.assignedTo = { empId: emp.id, empName: emp.name, seniority: emp.seniorityRank, department: emp.department,
+                        assignedStation: slot.stationCode || '', assignedPosition: slot.position || '' };
     slot.status     = 'reward';
     doneIds.add(idLo(emp.id));
     rewardCount++;
@@ -2303,6 +2595,7 @@ function _doProcessBids() {
   renderSummary();
   renderBrowse();
   updateProcessStats();
+  renderCoverage();
   showToast(`✅ Bids processed — ${bidCount} assigned, ${rewardCount} rewarded, ${unassigned} unassigned.`, 'success');
 }
 
@@ -2353,6 +2646,13 @@ function renderResults() {
       () => { const td = document.createElement('td');
                const s = document.createElement('strong'); s.style.color = 'var(--accent)';
                s.textContent = `#${res.roster.rosterNumber}`; td.appendChild(s); return td; },
+      () => { const td = document.createElement('td');
+               const sc = res.roster.stationCode || res.roster.assignedTo?.assignedStation || '—';
+               const pos = res.roster.position || '';
+               const pc = pos === 'SA' ? '#ff7043' : pos === 'SAMB' ? '#42a5f5' : pos === 'SS' ? '#ab47bc' : 'var(--text)';
+               td.innerHTML = `<span style="font-weight:700;color:var(--accent)">${sc}</span>
+                 <span style="font-size:10px;font-weight:700;color:${pc};margin-left:4px">${pos}</span>`;
+               return td; },
       () => { const td = document.createElement('td'); td.textContent = res.roster.department; return td; },
       () => { const td = document.createElement('td');
                const s = document.createElement('span'); s.style.color = isR ? 'var(--warn)' : 'var(--accent3)';
@@ -2588,6 +2888,319 @@ function deleteArchive(key) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// § 12b  COVERAGE MAP  (shortfall / surplus dashboard per station)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function computeCoverageData() {
+  const result = {};
+  const bidsProcessed = _stateRaw.rosters.some(r => r.status === 'assigned' || r.status === 'reward');
+
+  // Build counts: stationCode → position → shiftType → number of people
+  // Uses dept string "3D1-SA" to identify station+position reliably.
+  // Shift type is the FIRST character of the dominant non-OFF/VACATION shift code.
+  const counts = {}; // counts[stationCode][pos][shiftType] = n
+
+  _stateRaw.rosters.forEach(r => {
+    if (r.status === 'vacation') return;
+    // If bids processed: only count assigned/reward. Before: count all available.
+    if (bidsProcessed && r.status === 'available') return;
+
+    // Derive station + position from dept ("3D1-SA" → station="3D1", pos="SA")
+    const deptStr = r.department || '';
+    const posMatch = deptStr.match(/-(SA|SAMB|SS)$/i);
+    const pos      = posMatch ? posMatch[1].toUpperCase() : (r.position || '');
+    const station  = posMatch ? deptStr.slice(0, -posMatch[0].length) : (r.stationCode || deptStr);
+
+    if (!station || !pos) return;
+
+    // Find dominant shift type from this roster's shift codes
+    const freq = {};
+    r.shifts.forEach(sh => {
+      const code = sh.code || '';
+      if (code === 'OFF' || code === 'VACATION' || !code) return;
+      const k = code[0]; // E, L, M, N
+      if ('ELMN'.includes(k)) freq[k] = (freq[k] || 0) + 1;
+    });
+    const dominantEntry = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
+    if (!dominantEntry) return;
+    const shiftType = dominantEntry[0];
+
+    if (!counts[station])           counts[station] = {};
+    if (!counts[station][pos])      counts[station][pos] = {};
+    counts[station][pos][shiftType] = (counts[station][pos][shiftType] || 0) + 1;
+  });
+
+  STATION_MASTER.forEach(([code, line, shiftCode, saHC, sambHC, ssHC]) => {
+    result[code] = { line, shiftCode, positions: {}, bidsProcessed };
+    const posHC = { SA: saHC, SAMB: sambHC, SS: ssHC };
+
+    ['SA', 'SAMB', 'SS'].forEach(pos => {
+      const req = COVERAGE_REQ[pos];
+      const hc  = posHC[pos];
+      const shiftStatus = {};
+
+      req.shifts.forEach(shiftKey => {
+        let avail;
+        if (_stateRaw.rosters.length === 0) {
+          // No rosters at all — estimate evenly from headcount
+          avail = Math.max(1, Math.floor(hc / req.shifts.length));
+        } else {
+          avail = (counts[code] && counts[code][pos] && counts[code][pos][shiftKey]) || 0;
+        }
+        const needed = req.perStation;
+        const delta  = avail - needed;
+        shiftStatus[shiftKey] = {
+          available: avail, required: needed, delta,
+          status: avail === 0 ? 'shortfall' : delta < 0 ? 'risk' : 'covered',
+        };
+      });
+
+      const allDeltas     = Object.values(shiftStatus).map(x => x.delta);
+      const overallStatus = Math.min(...allDeltas) < 0 ? 'shortfall'
+                          : Math.max(...allDeltas) > 0 ? 'surplus' : 'ok';
+
+      // Names of assigned staff at this station/position
+      const assignedStaff = _stateRaw.rosters
+        .filter(r => {
+          const d = r.department || '';
+          const pm = d.match(/-(SA|SAMB|SS)$/i);
+          const rPos     = pm ? pm[1].toUpperCase() : (r.position || '');
+          const rStation = pm ? d.slice(0, -pm[0].length) : (r.stationCode || '');
+          return rStation === code && rPos === pos && r.assignedTo;
+        })
+        .map(r => {
+          const freq2 = {};
+          r.shifts.forEach(sh => {
+            const c = sh.code || '';
+            if ('ELMN'.includes(c[0]) && c !== 'OFF') freq2[c[0]] = (freq2[c[0]] || 0) + 1;
+          });
+          const dom = Object.entries(freq2).sort((a,b) => b[1]-a[1])[0];
+          const shiftLetter = dom ? dom[0] : '?';
+          return `${r.assignedTo.empName} (${shiftLetter})`;
+        });
+
+      result[code].positions[pos] = { shifts: shiftStatus, overallStatus, headcount: hc, assignedStaff };
+    });
+  });
+
+  return result;
+}
+
+function renderCoverage() {
+  const covData    = computeCoverageData();
+  const lineFilter = (document.getElementById('cov-filter-line')   || {}).value || '';
+  const posFilter  = (document.getElementById('cov-filter-pos')    || {}).value || '';
+  const statusFilt = (document.getElementById('cov-filter-status') || {}).value || '';
+
+  // ── Status helpers ─────────────────────────────────────────────────────────
+  // Three tiers: shortfall (0 staff) | risk (some staff, below required) | covered (≥ required)
+  const positionStatus = (pd) => {
+    const allDeltas  = Object.values(pd.shifts).map(s => s.delta);
+    const allAvail   = Object.values(pd.shifts).map(s => s.available);
+    const minDelta   = Math.min(...allDeltas);
+    const minAvail   = Math.min(...allAvail);
+    if (minAvail === 0)   return 'shortfall';   // nobody assigned
+    if (minDelta < 0)     return 'risk';         // some staff but below required
+    return 'covered';
+  };
+
+  const STATUS_CFG = {
+    shortfall: { color: '#ef5350', bg: 'rgba(239,83,80,0.08)',  border: 'rgba(239,83,80,0.3)',  icon: '🟥', label: 'SHORTFALL' },
+    risk:      { color: '#ffa726', bg: 'rgba(255,167,38,0.08)', border: 'rgba(255,167,38,0.3)', icon: '🟨', label: 'AT RISK'    },
+    covered:   { color: '#66bb6a', bg: 'rgba(102,187,106,0.08)',border: 'rgba(102,187,106,0.3)',icon: '🟩', label: 'COVERED'    },
+  };
+
+  // Re-stamp each position's overallStatus using new 3-tier logic
+  Object.values(covData).forEach(st => {
+    Object.values(st.positions).forEach(pd => {
+      pd.overallStatus = positionStatus(pd);
+    });
+  });
+
+  // ── Summary bar ────────────────────────────────────────────────────────────
+  let totals = { shortfall: 0, risk: 0, covered: 0 };
+  Object.values(covData).forEach(st => {
+    Object.values(st.positions).forEach(pd => { totals[pd.overallStatus]++; });
+  });
+  const total = totals.shortfall + totals.risk + totals.covered || 1;
+  const summaryBar = document.getElementById('cov-summary-bar');
+  if (summaryBar) summaryBar.innerHTML = `
+    <div class="stat-card" style="border-left:3px solid #ef5350">
+      <div class="label">🟥 Shortfall</div>
+      <div class="value" style="color:#ef5350">${totals.shortfall}</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid #ffa726">
+      <div class="label">🟨 At Risk</div>
+      <div class="value" style="color:#ffa726">${totals.risk}</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid #66bb6a">
+      <div class="label">🟩 Covered</div>
+      <div class="value" style="color:#66bb6a">${totals.covered}</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid var(--accent)">
+      <div class="label">Total Stations</div>
+      <div class="value">${STATION_MASTER.length}</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid var(--accent2)">
+      <div class="label">Coverage %</div>
+      <div class="value" style="color:var(--accent2)">${Math.round(totals.covered / total * 100)}%</div>
+    </div>`;
+
+  // ── Station cards ──────────────────────────────────────────────────────────
+  const grid = document.getElementById('cov-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  const bidsProcessed = _stateRaw.rosters.some(r => r.status === 'assigned' || r.status === 'reward');
+
+  // Data-source banner
+  const srcBanner = document.createElement('div');
+  srcBanner.style.cssText = 'grid-column:1/-1;font-size:11px;padding:10px 14px;border-radius:8px;margin-bottom:6px;' +
+    (bidsProcessed
+      ? 'background:rgba(102,187,106,0.12);color:#388e3c;border:1px solid rgba(102,187,106,0.3);'
+      : _stateRaw.rosters.length
+        ? 'background:rgba(255,167,38,0.1);color:#bf6000;border:1px solid rgba(255,167,38,0.3);'
+        : 'background:rgba(158,158,158,0.08);color:var(--text3);border:1px solid var(--border);');
+  srcBanner.textContent = bidsProcessed
+    ? '✅ Showing actual post-bid staff assignments per station'
+    : _stateRaw.rosters.length
+      ? '⚠ Rosters generated but bids not yet processed — showing pre-assignment roster counts'
+      : 'ℹ No rosters generated yet — configure and generate to see live coverage';
+  frag.appendChild(srcBanner);
+
+  const posColors = { SA:'#ff7043', SAMB:'#42a5f5', SS:'#ab47bc' };
+
+  STATION_MASTER.forEach(([code, line]) => {
+    if (lineFilter && line !== lineFilter) return;
+
+    const st = covData[code];
+    // ── FILTER BUG FIX: compute card status ONLY from the positions being shown
+    // so "SA filter + shortfall filter" correctly excludes cards where SA is covered
+    // even if another position (SS, SAMB) is in shortfall.
+    const showPositions = posFilter ? [posFilter] : ['SA','SAMB','SS'];
+    const visibleStatuses = showPositions
+      .map(p => st.positions[p]?.overallStatus)
+      .filter(Boolean);
+
+    const cardStatus = visibleStatuses.includes('shortfall') ? 'shortfall'
+                     : visibleStatuses.includes('risk')      ? 'risk'
+                     : visibleStatuses.length                ? 'covered'
+                     : 'covered';
+
+    // Apply status filter — exact match against the visible positions' derived status
+    if (statusFilt && cardStatus !== statusFilt) return;
+
+    const sc        = STATUS_CFG[cardStatus];
+    const lineLabel = line === 'L3' ? 'Line 3' : line === 'L46' ? 'Line 4/6' : 'Line 5';
+    const lineColor = line === 'L3' ? '#42a5f5' : line === 'L46' ? '#ab47bc' : '#ff7043';
+
+    // Card
+    const card = document.createElement('div');
+    card.style.cssText = [
+      'background:var(--surface)',
+      'border:1px solid var(--border)',
+      'border-radius:14px',
+      'padding:24px 28px',
+      `border-top:4px solid ${sc.color}`,
+      'box-shadow:0 2px 8px rgba(26,34,54,0.07)',
+      'display:flex',
+      'flex-direction:column',
+      'gap:0',
+    ].join(';');
+
+    // Card header
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;';
+    hdr.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-weight:900;font-size:22px;letter-spacing:-0.5px;color:var(--text)">${code}</span>
+        <span style="font-size:10px;font-weight:700;background:${lineColor}20;color:${lineColor};
+              border-radius:5px;padding:3px 8px;letter-spacing:0.3px;">${lineLabel}</span>
+      </div>
+      <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;
+            color:${sc.color};background:${sc.bg};border:1px solid ${sc.border};
+            border-radius:6px;padding:4px 10px;letter-spacing:0.4px;">
+        ${sc.icon} ${sc.label}
+      </span>`;
+    card.appendChild(hdr);
+
+    // Position rows
+    showPositions.forEach(pos => {
+      const pd = st.positions[pos];
+      if (!pd) return;
+      const posColor  = posColors[pos];
+      const posStatus = pd.overallStatus;
+      const psc       = STATUS_CFG[posStatus];
+
+      // Shift bars
+      let shiftHtml = '';
+      Object.entries(pd.shifts).forEach(([shift, sd]) => {
+        const isShortfall = sd.available === 0;
+        const isRisk      = sd.delta < 0 && sd.available > 0;
+        const barColor    = isShortfall ? '#ef5350' : isRisk ? '#ffa726' : '#66bb6a';
+        const deltaStr    = sd.delta >= 0 ? `+${sd.delta}` : `${sd.delta}`;
+        const pct         = Math.min(100, Math.round(sd.available / Math.max(1, sd.required) * 100));
+        const shiftBadgeColor = shift === 'E' ? '#ff7043' : shift === 'L' ? '#42a5f5'
+                              : shift === 'N' ? '#ab47bc' : '#26a69a';
+        shiftHtml += `
+          <div style="display:flex;align-items:center;gap:10px;
+               background:var(--surface2);border-radius:8px;padding:7px 11px;margin-top:6px;">
+            <span style="font-size:11px;font-weight:800;color:${shiftBadgeColor};
+                  background:${shiftBadgeColor}18;border-radius:4px;
+                  padding:1px 6px;min-width:22px;text-align:center;">${shift}</span>
+            <span style="font-size:12px;color:var(--text2);flex:1">${sd.available} / ${sd.required} req</span>
+            <div style="width:56px;height:6px;border-radius:4px;background:var(--border);overflow:hidden;flex-shrink:0">
+              <div style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width 0.3s;"></div>
+            </div>
+            <span style="font-size:12px;font-weight:900;color:${barColor};min-width:30px;text-align:right">${deltaStr}</span>
+          </div>`;
+      });
+
+      // Staff pills
+      let staffHtml = '';
+      if (bidsProcessed && pd.assignedStaff && pd.assignedStaff.length) {
+        const pills = pd.assignedStaff.map(name => {
+          const shiftType = name.slice(-2, -1);
+          const pillColor = shiftType === 'E' ? '#ff7043' : shiftType === 'L' ? '#42a5f5'
+                          : shiftType === 'N' ? '#ab47bc' : '#26a69a';
+          return `<span style="display:inline-flex;align-items:center;background:${pillColor}15;
+                  color:${pillColor};border-radius:5px;padding:2px 8px;font-size:9px;font-weight:700;
+                  margin:2px;border:1px solid ${pillColor}35;">${name}</span>`;
+        }).join('');
+        staffHtml = `<div style="margin-top:10px;line-height:2">${pills}</div>`;
+      }
+
+      const posRow = document.createElement('div');
+      posRow.style.cssText = 'margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);';
+      posRow.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:11px;font-weight:800;color:${posColor};letter-spacing:0.6px;">${pos}</span>
+          <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+                color:${psc.color};background:${psc.bg};border-radius:4px;padding:1px 7px;border:1px solid ${psc.border};">
+            ${psc.icon} ${psc.label}
+          </span>
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:2px;text-align:right">
+          ${pd.headcount} on roster
+        </div>
+        ${shiftHtml}${staffHtml}`;
+      card.appendChild(posRow);
+    });
+
+    frag.appendChild(card);
+  });
+
+  grid.appendChild(frag);
+  if (grid.children.length <= 1) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:var(--text3);padding:40px;text-align:center;grid-column:1/-1;font-size:14px;';
+    empty.textContent = 'No stations match the selected filters.';
+    grid.appendChild(empty);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // § 12  RESET
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -2756,7 +3369,8 @@ function renderNav() {
       _stateRaw.rosters.reduce((a, r) => a + r.bids.length, 0)));
     frag.appendChild(navItem('results', '🏆', 'Results'));
     frag.appendChild(sectionLabel('Reports'));
-    frag.appendChild(navItem('summary', '📊', 'Summary'));
+    frag.appendChild(navItem('summary',  '📊', 'Summary'));
+    frag.appendChild(navItem('coverage', '📍', 'Coverage Map'));
     frag.appendChild(sectionLabel('Archive'));
     frag.appendChild(navItem('archive', '🗄️', 'Month Archive', 'nav-archive-count', loadArchive().length, 'warn'));
   } else {
@@ -2787,6 +3401,7 @@ function switchPanel(name) {
     process:        updateProcessStats,
     results:        renderResults,
     summary:        renderSummary,
+    coverage:       renderCoverage,
     browse:         () => { populateBrowseFilters(); renderBrowse(); },
     archive:        renderArchivePanel,
     'staff-bid':    renderStaffBid,
@@ -2852,7 +3467,7 @@ function buildPlannerPanels() {
     </div>
     <div style="max-height:400px;overflow-y:auto">
       <table class="data-table">
-        <thead><tr><th>#</th><th>ID</th><th>Name</th><th>Dept</th><th>Position</th><th>Line</th><th>Bidding?</th></tr></thead>
+        <thead><tr><th>#</th><th>ID</th><th>Name</th><th>Upload Dept</th><th>→ Station Config</th><th>Position</th><th>Line</th><th>Shifts</th><th>Bidding?</th></tr></thead>
         <tbody id="emp-preview-tbody"></tbody>
       </table>
     </div>
@@ -2913,6 +3528,7 @@ function buildPlannerPanels() {
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#ff7043"></div>Early (E)</div>
     <div class="legend-item"><div class="legend-dot" style="background:#42a5f5"></div>Late (L)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div>Mid (M)</div>
     <div class="legend-item"><div class="legend-dot" style="background:#ab47bc"></div>Night (N)</div>
     <div class="legend-item"><div class="legend-dot" style="background:#607d8b"></div>OFF</div>
     <div class="legend-item"><div class="legend-dot" style="background:#26a69a"></div>VAC</div>
@@ -2951,7 +3567,7 @@ function buildPlannerPanels() {
     <button class="btn btn-ghost" onclick="saveToArchive()">🗄️ Save to Archive</button>
   </div>
   <div style="overflow-x:auto">
-    <table class="data-table"><thead><tr><th>Roster #</th><th>Dept</th><th>Type</th><th>Assigned To</th><th>Seniority</th><th>All Bidders</th></tr></thead>
+    <table class="data-table"><thead><tr><th>Roster #</th><th>Station</th><th>Dept</th><th>Type</th><th>Assigned To</th><th>Seniority</th><th>All Bidders</th></tr></thead>
     <tbody id="results-tbody"></tbody></table>
   </div>
 </div>
@@ -2976,29 +3592,94 @@ function buildPlannerPanels() {
 <div class="tab-panel" id="panel-archive">
   <div class="section-header"><h2>🗄️ Month Archive</h2></div>
   <div id="archive-list"></div>
+</div>
+
+<!-- COVERAGE MAP -->
+<div class="tab-panel" id="panel-coverage">
+  <div class="section-header">
+    <h2>📍 Coverage Map</h2>
+    <p>Live shortfall &amp; surplus per station · SA · SAMB · SS</p>
+  </div>
+
+  <!-- Summary bar -->
+  <div id="cov-summary-bar" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px;"></div>
+
+  <!-- Filters -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+    <select id="cov-filter-line" onchange="renderCoverage()"
+      style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;">
+      <option value="">All Lines</option>
+      <option value="L3">Line 3</option>
+      <option value="L46">Line 4 &amp; 6</option>
+      <option value="L5">Line 5</option>
+    </select>
+    <select id="cov-filter-pos" onchange="renderCoverage()"
+      style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;">
+      <option value="">All Positions</option>
+      <option value="SA">SA</option>
+      <option value="SAMB">SAMB</option>
+      <option value="SS">SS</option>
+    </select>
+    <select id="cov-filter-status" onchange="renderCoverage()"
+      style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-size:12px;cursor:pointer;">
+      <option value="">All Stations</option>
+      <option value="shortfall">🟥 Shortfall Only</option>
+      <option value="risk">🟨 At Risk Only</option>
+      <option value="covered">🟩 Covered Only</option>
+    </select>
+    <button onclick="renderCoverage()" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-weight:600;">↻ Refresh</button>
+  </div>
+
+  <!-- Station grid -->
+  <div id="cov-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px;"></div>
 </div>`;
 
   // Build dept table rows using DocumentFragment
   const deptTbody = document.getElementById('dept-tbody');
   const deptFrag  = document.createDocumentFragment();
+
+  // Build a quick lookup: how many uploaded employees are linked to each dept config
+  const uploadedByDept = {};
+  _stateRaw.uploadedEmployees.forEach(e => {
+    uploadedByDept[e.department] = (uploadedByDept[e.department] || 0) + 1;
+  });
+
   DEPT_CONFIGS.forEach(cfg => {
     _stateRaw.deptIncludes[cfg.dept] = true;
     const tr = document.createElement('tr');
     const pillsHtml = cfg.shifts.map(s => `<span class="shift-pill pill-${s}">${s}</span>`).join('→');
 
-    [cfg.dept, cfg.line, cfg.position, cfg.headcount].forEach((val, i) => {
+    // Dept name cell
+    const deptTd = document.createElement('td');
+    const strong = document.createElement('strong');
+    strong.textContent = cfg.dept;
+    deptTd.appendChild(strong);
+    // Add upload-linked badge if employees are linked to this dept
+    const uploadCount = uploadedByDept[cfg.dept] || 0;
+    if (_stateRaw.uploadedEmployees.length > 0) {
+      const badge = document.createElement('span');
+      badge.style.cssText = uploadCount > 0
+        ? 'margin-left:6px;font-size:9px;font-weight:700;background:rgba(15,158,110,0.12);color:var(--accent3);border-radius:4px;padding:1px 5px;border:1px solid rgba(15,158,110,0.25)'
+        : 'margin-left:6px;font-size:9px;font-weight:700;background:rgba(196,125,10,0.1);color:var(--warn);border-radius:4px;padding:1px 5px;border:1px solid rgba(196,125,10,0.2)';
+      badge.textContent = uploadCount > 0 ? `✓ ${uploadCount} staff` : '— no upload';
+      deptTd.appendChild(badge);
+    }
+    tr.appendChild(deptTd);
+
+    [cfg.line, cfg.position, uploadCount > 0 ? uploadCount : cfg.headcount].forEach((val, i) => {
       const td = document.createElement('td');
-      if (i === 0) { const strong = document.createElement('strong'); strong.textContent = val; td.appendChild(strong); }
-      else          td.textContent = val;
+      td.textContent = val;
       tr.appendChild(td);
     });
     const pillTd = document.createElement('td');
-    pillTd.innerHTML = pillsHtml; // safe — cfg.shifts are hardcoded constants, not user input
+    pillTd.innerHTML = pillsHtml;
     tr.appendChild(pillTd);
     const chkTd  = document.createElement('td');
     const chk    = document.createElement('input');
     chk.type     = 'checkbox';
-    chk.checked  = true;
+    // Auto-uncheck configs with no uploaded staff when in upload mode
+    chk.checked  = uploadCount > 0 || _stateRaw.uploadedEmployees.length === 0;
+    _stateRaw.deptIncludes[cfg.dept] = chk.checked;
     chk.style.cssText = 'width:15px;height:15px;accent-color:var(--accent)';
     chk.onchange = () => { _stateRaw.deptIncludes[cfg.dept] = chk.checked; };
     chkTd.appendChild(chk);
@@ -3015,6 +3696,7 @@ function buildPlannerPanels() {
   updateProcessStats();
   renderResults();
   renderSummary();
+  renderCoverage();
   switchPanel('upload');
 }
 
